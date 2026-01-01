@@ -128,10 +128,8 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <script type="text/javascript">
-        var InvoiceViewer = {
+        <script type="text/javascript">
+            var InvoiceViewer = {
             currentUserId: null,
             currentInvoices: [],
             currencyCode: 'USD',
@@ -320,9 +318,16 @@
             }
         };
 
-        document.getElementById('InvoicesPage').addEventListener('viewshow', function() {
-            InvoiceViewer.init();
-        });
-    </script>
+            // Initialize on viewshow event (Jellyfin SPA navigation)
+            document.getElementById('InvoicesPage').addEventListener('viewshow', function() {
+                InvoiceViewer.init();
+            });
+
+            // Also initialize immediately in case viewshow already fired
+            if (document.getElementById('UserSelect').options.length <= 1) {
+                InvoiceViewer.init();
+            }
+        </script>
+    </div>
 </body>
 </html>
