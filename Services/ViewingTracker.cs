@@ -2,9 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Jellyfin.Data.Enums;
 using JellyfinInvoice.Configuration;
 using JellyfinInvoice.Models;
 using JellyfinInvoice.Validation;
+using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Session;
 using Microsoft.Extensions.Hosting;
@@ -19,6 +21,7 @@ namespace JellyfinInvoice.Services;
 public sealed class ViewingTracker : IHostedService, IDisposable
 {
     private readonly ISessionManager _sessionManager;
+    private readonly ILibraryManager _libraryManager;
     private readonly ILogger<ViewingTracker> _logger;
     private readonly DataStore _dataStore;
 
@@ -31,14 +34,17 @@ public sealed class ViewingTracker : IHostedService, IDisposable
     /// Initializes a new instance of the <see cref="ViewingTracker"/> class.
     /// </summary>
     /// <param name="sessionManager">Jellyfin session manager.</param>
+    /// <param name="libraryManager">Jellyfin library manager.</param>
     /// <param name="logger">Logger instance.</param>
     /// <param name="dataStore">Data storage service.</param>
     public ViewingTracker(
         ISessionManager sessionManager,
+        ILibraryManager libraryManager,
         ILogger<ViewingTracker> logger,
         DataStore dataStore)
     {
         _sessionManager = sessionManager ?? throw new ArgumentNullException(nameof(sessionManager));
+        _libraryManager = libraryManager ?? throw new ArgumentNullException(nameof(libraryManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _dataStore = dataStore ?? throw new ArgumentNullException(nameof(dataStore));
     }
@@ -195,7 +201,7 @@ public sealed class ViewingTracker : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// Extracts the media item type from event args.
+    /// Extracts the media item type from the library's content type setting.
     /// </summary>
     private MediaItemType ExtractItemType(PlaybackProgressEventArgs e)
     {
@@ -205,14 +211,45 @@ public sealed class ViewingTracker : IHostedService, IDisposable
             return MediaItemType.Other;
         }
 
-        // Check the item type using Jellyfin's type system
-        var typeName = item.GetType().Name;
-        return typeName switch
+        try
         {
-            "Movie" => MediaItemType.Movie,
-            "Episode" => MediaItemType.Episode,
-            _ => MediaItemType.Other
-        };
+            // Get the collection type from the item's library
+            var collectionType = GetCollectionType(item);
+
+            return collectionType switch
+            {
+                CollectionType.movies => MediaItemType.Movie,
+                CollectionType.tvshows => MediaItemType.Episode,
+                _ => MediaItemType.Other
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to determine collection type, defaulting to Other");
+            return MediaItemType.Other;
+        }
+    }
+
+    /// <summary>
+    /// Gets the collection type for an item by traversing up to its library root.
+    /// </summary>
+    private CollectionType? GetCollectionType(BaseItem item)
+    {
+        // Walk up the parent hierarchy to find the collection folder
+        var current = item;
+        while (current != null)
+        {
+            // Check if this item is a collection folder with a type
+            if (current is CollectionFolder folder)
+            {
+                return folder.CollectionType;
+            }
+
+            // Try to get the parent
+            current = current.GetParent();
+        }
+
+        return null;
     }
 
     /// <summary>
