@@ -5,7 +5,7 @@
     <title>Invoice Generator</title>
 </head>
 <body>
-    <div id="InvoiceConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select">
+    <div id="invoiceConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select">
         <div data-role="content">
             <div class="content-primary">
                 <div style="margin-bottom: 2em; padding: 1em; background: rgba(0,0,0,0.2); border-radius: 8px;">
@@ -19,7 +19,7 @@
                 <h3>Settings</h3>
                 <div class="inputContainer">
                     <label class="inputLabel">Enable Tracking</label>
-                    <select is="emby-select" id="EnableTracking" class="emby-select">
+                    <select is="emby-select" id="txtEnableTracking" class="emby-select">
                         <option value="false">Disabled</option>
                         <option value="true">Enabled</option>
                     </select>
@@ -27,75 +27,52 @@
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel" for="CurrencyCode">Currency Code (ISO 4217)</label>
-                    <input is="emby-input" type="text" id="CurrencyCode" class="emby-input" maxlength="3" />
+                    <label class="inputLabel" for="txtCurrencyCode">Currency Code (ISO 4217)</label>
+                    <input is="emby-input" type="text" id="txtCurrencyCode" class="emby-input" maxlength="3" />
                     <div class="fieldDescription">Three-letter currency code (e.g., USD, EUR, GBP).</div>
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel" for="DefaultRatePerHour">Default Rate Per Hour</label>
-                    <input is="emby-input" type="number" id="DefaultRatePerHour" class="emby-input" min="0" step="0.01" />
+                    <label class="inputLabel" for="txtDefaultRatePerHour">Default Rate Per Hour</label>
+                    <input is="emby-input" type="number" id="txtDefaultRatePerHour" class="emby-input" min="0" step="0.01" />
                     <div class="fieldDescription">Hourly rate for viewing charges.</div>
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel" for="InvoicePeriodDays">Invoice Period (Days)</label>
-                    <input is="emby-input" type="number" id="InvoicePeriodDays" class="emby-input" min="1" max="365" />
+                    <label class="inputLabel" for="txtInvoicePeriodDays">Invoice Period (Days)</label>
+                    <input is="emby-input" type="number" id="txtInvoicePeriodDays" class="emby-input" min="1" max="365" />
                     <div class="fieldDescription">Number of days per billing cycle.</div>
                 </div>
 
                 <div>
-                    <button is="emby-button" type="button" class="raised button-submit block emby-button" id="saveButton">
+                    <button is="emby-button" type="button" class="raised button-submit block emby-button">
                         <span>Save</span>
                     </button>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script type="text/javascript">
-        (function() {
-            'use strict';
-
+        <script type="text/javascript">
             var pluginId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+            var page = document.querySelector('#invoiceConfigPage');
 
-            function loadConfig() {
+            page.querySelector('.button-submit').addEventListener('click', function() {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function(config) {
-                    document.getElementById('EnableTracking').value = config.EnableTracking ? 'true' : 'false';
-                    document.getElementById('CurrencyCode').value = config.CurrencyCode || 'USD';
-                    document.getElementById('DefaultRatePerHour').value = config.DefaultRatePerHour || 0;
-                    document.getElementById('InvoicePeriodDays').value = config.InvoicePeriodDays || 30;
-                    Dashboard.hideLoadingMsg();
-                }).catch(function(err) {
-                    console.error('Failed to load config:', err);
-                    Dashboard.hideLoadingMsg();
+                    config.EnableTracking = page.querySelector('#txtEnableTracking').value === 'true';
+                    config.CurrencyCode = page.querySelector('#txtCurrencyCode').value.toUpperCase() || 'USD';
+                    config.DefaultRatePerHour = parseFloat(page.querySelector('#txtDefaultRatePerHour').value) || 0;
+                    config.InvoicePeriodDays = parseInt(page.querySelector('#txtInvoicePeriodDays').value) || 30;
+                    ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
-            }
+            });
 
-            function saveConfig() {
-                Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(pluginId).then(function(config) {
-                    config.EnableTracking = document.getElementById('EnableTracking').value === 'true';
-                    config.CurrencyCode = document.getElementById('CurrencyCode').value.toUpperCase() || 'USD';
-                    config.DefaultRatePerHour = parseFloat(document.getElementById('DefaultRatePerHour').value) || 0;
-                    config.InvoicePeriodDays = parseInt(document.getElementById('InvoicePeriodDays').value) || 30;
-                    return ApiClient.updatePluginConfiguration(pluginId, config);
-                }).then(function() {
-                    Dashboard.processPluginConfigurationUpdateResult();
-                }).catch(function(err) {
-                    console.error('Failed to save:', err);
-                    Dashboard.hideLoadingMsg();
-                    Dashboard.alert('Failed to save');
-                });
-            }
-
-            var page = document.querySelector('#InvoiceConfigPage');
-            page.addEventListener('pageshow', loadConfig);
-            page.addEventListener('viewshow', loadConfig);
-
-            document.getElementById('saveButton').addEventListener('click', saveConfig);
-        })();
-    </script>
+            ApiClient.getPluginConfiguration(pluginId).then(function(config) {
+                page.querySelector('#txtEnableTracking').value = config.EnableTracking ? 'true' : 'false';
+                page.querySelector('#txtCurrencyCode').value = config.CurrencyCode || 'USD';
+                page.querySelector('#txtDefaultRatePerHour').value = config.DefaultRatePerHour || 0;
+                page.querySelector('#txtInvoicePeriodDays').value = config.InvoicePeriodDays || 30;
+            });
+        </script>
+    </div>
 </body>
 </html>
