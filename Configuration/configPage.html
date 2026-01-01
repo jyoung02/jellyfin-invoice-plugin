@@ -45,7 +45,7 @@
                 </div>
 
                 <div>
-                    <button is="emby-button" type="button" class="raised button-submit block emby-button">
+                    <button is="emby-button" type="button" id="btnSave" class="raised button-submit block emby-button">
                         <span>Save</span>
                     </button>
                 </div>
@@ -55,7 +55,7 @@
             var pluginId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
             var page = document.querySelector('#invoiceConfigPage');
 
-            page.querySelector('.button-submit').addEventListener('click', function() {
+            page.querySelector('#btnSave').addEventListener('click', function() {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(pluginId).then(function(config) {
                     config.EnableTracking = page.querySelector('#txtEnableTracking').value === 'true';
