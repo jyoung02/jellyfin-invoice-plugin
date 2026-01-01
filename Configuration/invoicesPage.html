@@ -133,8 +133,11 @@
             currentUserId: null,
             currentInvoices: [],
             currencyCode: 'USD',
+            initialized: false,
 
             init: function() {
+                if (this.initialized) return;
+                this.initialized = true;
                 this.loadUsers();
                 this.bindEvents();
             },
