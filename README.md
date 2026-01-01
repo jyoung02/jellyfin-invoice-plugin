@@ -1,6 +1,6 @@
 # Jellyfin Invoice Generator Plugin
 
-[![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)](https://github.com/jyoung02/jellyfin-invoice-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.2.3-blue.svg)](https://github.com/jyoung02/jellyfin-invoice-plugin/releases)
 [![Jellyfin](https://img.shields.io/badge/Jellyfin-10.9+-purple.svg)](https://jellyfin.org/)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
 
