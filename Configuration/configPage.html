@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Invoice Generator</title>
+</head>
+<body>
+    <div id="InvoiceConfigPage" data-role="page" class="page type-interior pluginConfigurationPage">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="InvoiceConfigForm">
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input type="checkbox" id="EnableTracking" name="EnableTracking" class="emby-checkbox" />
+                            <span>Enable Tracking</span>
+                        </label>
+                        <div class="fieldDescription">Enable viewing activity tracking for invoice generation.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="CurrencyCode">Currency Code (ISO 4217)</label>
+                        <input type="text" id="CurrencyCode" name="CurrencyCode" class="emby-input" maxlength="3" pattern="[A-Z]{3}" />
+                        <div class="fieldDescription">Three-letter currency code (e.g., USD, EUR, GBP).</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="DefaultRatePerHour">Default Rate Per Hour</label>
+                        <input type="number" id="DefaultRatePerHour" name="DefaultRatePerHour" class="emby-input" min="0" step="0.01" />
+                        <div class="fieldDescription">Hourly rate for viewing charges.</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="InvoicePeriodDays">Invoice Period (Days)</label>
+                        <input type="number" id="InvoicePeriodDays" name="InvoicePeriodDays" class="emby-input" min="1" max="365" />
+                        <div class="fieldDescription">Number of days per billing cycle.</div>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var InvoiceConfig = {
+            pluginUniqueId: 'A1B2C3D4-E5F6-7890-ABCD-EF1234567890',
+
+            loadConfiguration: function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(InvoiceConfig.pluginUniqueId).then(function (config) {
+                    document.getElementById('EnableTracking').checked = config.EnableTracking;
+                    document.getElementById('CurrencyCode').value = config.CurrencyCode || 'USD';
+                    document.getElementById('DefaultRatePerHour').value = config.DefaultRatePerHour || 0;
+                    document.getElementById('InvoicePeriodDays').value = config.InvoicePeriodDays || 30;
+                    Dashboard.hideLoadingMsg();
+                });
+            },
+
+            saveConfiguration: function (e) {
+                e.preventDefault();
+                Dashboard.showLoadingMsg();
+
+                ApiClient.getPluginConfiguration(InvoiceConfig.pluginUniqueId).then(function (config) {
+                    config.EnableTracking = document.getElementById('EnableTracking').checked;
+                    config.CurrencyCode = document.getElementById('CurrencyCode').value.toUpperCase();
+                    config.DefaultRatePerHour = parseFloat(document.getElementById('DefaultRatePerHour').value) || 0;
+                    config.InvoicePeriodDays = parseInt(document.getElementById('InvoicePeriodDays').value) || 30;
+
+                    ApiClient.updatePluginConfiguration(InvoiceConfig.pluginUniqueId, config).then(function () {
+                        Dashboard.processPluginConfigurationUpdateResult();
+                    });
+                });
+
+                return false;
+            }
+        };
+
+        document.getElementById('InvoiceConfigPage').addEventListener('viewshow', InvoiceConfig.loadConfiguration);
+        document.getElementById('InvoiceConfigForm').addEventListener('submit', InvoiceConfig.saveConfiguration);
+    </script>
+</body>
+</html>
