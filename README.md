@@ -1,6 +1,6 @@
 # Jellyfin Invoice Generator Plugin
 
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/jyoung02/jellyfin-invoice-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.3.4-blue.svg)](https://github.com/jyoung02/jellyfin-invoice-plugin/releases)
 [![Jellyfin](https://img.shields.io/badge/Jellyfin-10.9+-purple.svg)](https://jellyfin.org/)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
 
@@ -18,9 +18,10 @@ This plugin monitors playback events in Jellyfin and creates detailed invoices f
 ## Features
 
 - **Automatic Playback Tracking** - Hooks into Jellyfin's playback events (sessions under 30 seconds are excluded)
+- **Library-Based Classification** - Uses your library's content type setting (Movies, TV Shows, etc.) to determine billing rates
 - **Flat Rate Billing** - Set different rates for movies, episodes, and other content
 - **Custom Date Ranges** - Generate invoices for any time period (up to 365 days)
-- **Invoice Viewer UI** - View and generate invoices directly from Jellyfin's dashboard
+- **Invoice Management** - View, generate, and delete invoices from Jellyfin's dashboard
 - **Thread-Safe Storage** - JSON-based persistence with atomic file operations
 - **Security-First Design** - Comprehensive input validation against injection attacks
 - **Web Configuration UI** - Configure the plugin directly from Jellyfin's dashboard
@@ -60,6 +61,7 @@ Access the invoice viewer from **Dashboard > Plugins > Invoice Generator**, then
    - Rate (based on content type)
    - Amount
 4. Click **Generate Invoice** to create an invoice for the current billing period
+5. Click **Delete** to remove an invoice
 
 ## API Endpoints
 
@@ -76,6 +78,12 @@ Returns all invoices for the specified user.
 GET /Invoice/{invoiceId}
 ```
 Returns a specific invoice by ID.
+
+### Delete Invoice
+```
+DELETE /Invoice/{invoiceId}
+```
+Deletes an invoice by ID.
 
 ### Generate Current Period Invoice
 ```
