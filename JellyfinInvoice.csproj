@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="Configuration\invoicesPage.html" />
   </ItemGroup>
 
   <!-- Exclude test files from main project -->

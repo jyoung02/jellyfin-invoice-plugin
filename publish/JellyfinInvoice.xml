@@ -1,0 +1,953 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>JellyfinInvoice</name>
+    </assembly>
+    <members>
+        <member name="T:JellyfinInvoice.Api.InvoiceController">
+            <summary>
+            API controller for invoice operations.
+            All endpoints require authentication and validate all inputs.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.#ctor(JellyfinInvoice.Services.InvoiceGenerator,Microsoft.Extensions.Logging.ILogger{JellyfinInvoice.Api.InvoiceController})">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Api.InvoiceController"/> class.
+            </summary>
+            <param name="invoiceGenerator">Invoice generation service.</param>
+            <param name="logger">Logger instance.</param>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.GetUserInvoices(System.String)">
+            <summary>
+            Gets all invoices for a user.
+            </summary>
+            <param name="userId">The user ID.</param>
+            <returns>List of invoices.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.GetInvoice(System.String)">
+            <summary>
+            Gets a specific invoice by ID.
+            </summary>
+            <param name="invoiceId">The invoice ID.</param>
+            <returns>The invoice.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.GenerateInvoice(System.String)">
+            <summary>
+            Generates an invoice for the current billing period.
+            </summary>
+            <param name="userId">The user ID.</param>
+            <returns>The generated invoice.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.GenerateInvoiceForRange(System.String,JellyfinInvoice.Api.DateRangeRequest)">
+            <summary>
+            Generates an invoice for a custom date range.
+            </summary>
+            <param name="userId">The user ID.</param>
+            <param name="request">The date range request.</param>
+            <returns>The generated invoice.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.ValidateUserIdParameter(System.String)">
+            <summary>
+            Validates user ID from route parameter.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.ValidateInvoiceIdParameter(System.String)">
+            <summary>
+            Validates invoice ID from route parameter.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.ValidateDateRange(JellyfinInvoice.Api.DateRangeRequest)">
+            <summary>
+            Validates date range from request body.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Api.InvoiceController.LogRequest(System.String,System.Guid)">
+            <summary>
+            Logs API request for auditing.
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Api.DateRangeRequest">
+            <summary>
+            Request model for custom date range invoice generation.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Api.DateRangeRequest.StartDate">
+            <summary>
+            Gets or sets the start date of the range.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Api.DateRangeRequest.EndDate">
+            <summary>
+            Gets or sets the end date of the range.
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Models.Invoice">
+            <summary>
+            Represents an invoice for a billing period.
+            Contains line items derived from viewing records.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Models.Invoice.#ctor(System.Guid,System.Guid,System.DateTime,System.DateTime,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Models.Invoice"/> class.
+            </summary>
+            <param name="id">Unique invoice identifier.</param>
+            <param name="userId">The user this invoice is for.</param>
+            <param name="periodStart">Start of billing period (UTC).</param>
+            <param name="periodEnd">End of billing period (UTC).</param>
+            <param name="currencyCode">ISO 4217 currency code.</param>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.Id">
+            <summary>
+            Gets the unique invoice identifier.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.UserId">
+            <summary>
+            Gets the user ID this invoice belongs to.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.PeriodStart">
+            <summary>
+            Gets the start of the billing period (UTC).
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.PeriodEnd">
+            <summary>
+            Gets the end of the billing period (UTC).
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.CurrencyCode">
+            <summary>
+            Gets the ISO 4217 currency code.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.CreatedAt">
+            <summary>
+            Gets when this invoice was created (UTC).
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.LineItems">
+            <summary>
+            Gets the line items on this invoice.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.Invoice.TotalAmount">
+            <summary>
+            Gets the total amount for this invoice.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Models.Invoice.CalculateTotal">
+            <summary>
+            Calculates the total from all line items.
+            </summary>
+            <returns>Sum of all line item amounts.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Models.Invoice.AddLineItem(JellyfinInvoice.Models.InvoiceLineItem)">
+            <summary>
+            Adds a line item to the invoice.
+            </summary>
+            <param name="lineItem">The line item to add.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown if lineItem is null.</exception>
+        </member>
+        <member name="T:JellyfinInvoice.Models.InvoiceLineItem">
+            <summary>
+            Represents a single line item on an invoice.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Models.InvoiceLineItem.#ctor(System.Guid,System.String,System.Decimal,System.Decimal)">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Models.InvoiceLineItem"/> class.
+            </summary>
+            <param name="viewingRecordId">Reference to the source viewing record.</param>
+            <param name="description">Sanitized description of the charge.</param>
+            <param name="quantity">Hours watched.</param>
+            <param name="unitPrice">Rate per hour.</param>
+        </member>
+        <member name="P:JellyfinInvoice.Models.InvoiceLineItem.ViewingRecordId">
+            <summary>
+            Gets the ID of the viewing record this line item is based on.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.InvoiceLineItem.Description">
+            <summary>
+            Gets the sanitized description of the charge.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.InvoiceLineItem.Quantity">
+            <summary>
+            Gets the quantity (hours watched).
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.InvoiceLineItem.UnitPrice">
+            <summary>
+            Gets the unit price (rate per hour).
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.InvoiceLineItem.Amount">
+            <summary>
+            Gets the total amount for this line item (Quantity * UnitPrice).
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Models.ViewingRecord">
+            <summary>
+            Represents a single viewing session for a user.
+            Immutable after creation to ensure data integrity.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Models.ViewingRecord.#ctor(System.Guid,System.Guid,System.Guid,System.String,System.DateTime,System.DateTime,System.Int64)">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Models.ViewingRecord"/> class.
+            </summary>
+            <param name="id">Unique identifier for this record.</param>
+            <param name="userId">The Jellyfin user ID (already sanitized).</param>
+            <param name="itemId">The media item ID (already sanitized).</param>
+            <param name="itemName">The display name of the media (already sanitized).</param>
+            <param name="startTime">When playback started (UTC).</param>
+            <param name="endTime">When playback ended (UTC).</param>
+            <param name="durationTicks">Total playback duration in ticks.</param>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.Id">
+            <summary>
+            Gets the unique identifier for this viewing record.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.UserId">
+            <summary>
+            Gets the Jellyfin user ID who watched the content.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.ItemId">
+            <summary>
+            Gets the Jellyfin media item ID that was watched.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.ItemName">
+            <summary>
+            Gets the sanitized display name of the media item.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.StartTime">
+            <summary>
+            Gets the UTC timestamp when playback started.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.EndTime">
+            <summary>
+            Gets the UTC timestamp when playback ended.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.DurationTicks">
+            <summary>
+            Gets the total playback duration in ticks.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.Duration">
+            <summary>
+            Gets the duration as a TimeSpan.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Models.ViewingRecord.DurationHours">
+            <summary>
+            Gets the duration in hours for billing calculations.
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Plugin">
+            <summary>
+            Main plugin entry point for JellyfinInvoice.
+            Registers the plugin with Jellyfin and provides access to configuration.
+            </summary>
+        </member>
+        <member name="F:JellyfinInvoice.Plugin.PluginGuid">
+            <summary>
+            Unique identifier for this plugin.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Plugin.#ctor(MediaBrowser.Common.Configuration.IApplicationPaths,MediaBrowser.Model.Serialization.IXmlSerializer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Plugin"/> class.
+            </summary>
+            <param name="applicationPaths">Application paths provided by Jellyfin.</param>
+            <param name="xmlSerializer">XML serializer for configuration.</param>
+        </member>
+        <member name="P:JellyfinInvoice.Plugin.Instance">
+            <summary>
+            Gets the singleton instance of the plugin.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Plugin.Name">
+            <summary>
+            Gets the name of the plugin displayed in Jellyfin.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Plugin.Id">
+            <summary>
+            Gets the unique identifier for this plugin.
+            </summary>
+        </member>
+        <member name="P:JellyfinInvoice.Plugin.Description">
+            <summary>
+            Gets the description of the plugin.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Plugin.GetPages">
+            <summary>
+            Gets the web pages (configuration UI) for this plugin.
+            </summary>
+            <returns>Collection of plugin page info for the web interface.</returns>
+        </member>
+        <member name="T:JellyfinInvoice.Services.DataStore">
+            <summary>
+            Handles persistence of viewing records and invoices.
+            Uses file-based JSON storage with proper locking.
+            All data read from storage is re-validated before use.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.#ctor(System.String,Microsoft.Extensions.Logging.ILogger{JellyfinInvoice.Services.DataStore})">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Services.DataStore"/> class.
+            </summary>
+            <param name="dataDirectory">Directory for data storage (already validated).</param>
+            <param name="logger">Logger instance.</param>
+            <exception cref="T:System.ArgumentException">Thrown if directory path is invalid.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.SaveViewingRecord(JellyfinInvoice.Models.ViewingRecord)">
+            <summary>
+            Saves a viewing record to storage.
+            </summary>
+            <param name="record">The record to save (must already be sanitized).</param>
+            <exception cref="T:System.ArgumentNullException">Thrown if record is null.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.GetViewingRecords(System.Guid,System.DateTime,System.DateTime)">
+            <summary>
+            Gets all viewing records for a specific user within a date range.
+            All returned data is re-validated.
+            </summary>
+            <param name="userId">The user ID to query.</param>
+            <param name="startDate">Start of date range (UTC).</param>
+            <param name="endDate">End of date range (UTC).</param>
+            <returns>List of validated viewing records.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.SaveInvoice(JellyfinInvoice.Models.Invoice)">
+            <summary>
+            Saves an invoice to storage.
+            </summary>
+            <param name="invoice">The invoice to save (must already be sanitized).</param>
+            <exception cref="T:System.ArgumentNullException">Thrown if invoice is null.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.GetInvoices(System.Guid)">
+            <summary>
+            Gets all invoices for a specific user.
+            All returned data is re-validated.
+            </summary>
+            <param name="userId">The user ID to query.</param>
+            <returns>List of validated invoices.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.GetInvoice(System.Guid)">
+            <summary>
+            Gets a specific invoice by ID.
+            </summary>
+            <param name="invoiceId">The invoice ID.</param>
+            <returns>The validated invoice, or null if not found.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.ValidateDirectoryPath(System.String)">
+            <summary>
+            Validates a directory path is safe.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.EnsureDirectoryExists">
+            <summary>
+            Ensures the data directory exists.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.LoadViewingRecordsInternal">
+            <summary>
+            Loads viewing records from file.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.SaveViewingRecordsInternal(System.Collections.Generic.List{JellyfinInvoice.Models.ViewingRecord})">
+            <summary>
+            Saves viewing records to file.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.LoadInvoicesInternal">
+            <summary>
+            Loads invoices from file.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.SaveInvoicesInternal(System.Collections.Generic.List{JellyfinInvoice.Models.Invoice})">
+            <summary>
+            Saves invoices to file.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.LoadFromFile``1(System.String)">
+            <summary>
+            Loads data from a JSON file with error handling.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.SaveToFile``1(System.String,``0)">
+            <summary>
+            Saves data to a JSON file atomically.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.ValidateRecordFromStorage(JellyfinInvoice.Models.ViewingRecord)">
+            <summary>
+            Re-validates a viewing record loaded from storage.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.ValidateInvoiceFromStorage(JellyfinInvoice.Models.Invoice)">
+            <summary>
+            Re-validates an invoice loaded from storage.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.DataStore.Dispose">
+            <summary>
+            Disposes of resources.
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Services.InvoiceGenerator">
+            <summary>
+            Generates invoices from viewing records.
+            Calculates charges based on configured rates.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.#ctor(JellyfinInvoice.Services.DataStore,Microsoft.Extensions.Logging.ILogger{JellyfinInvoice.Services.InvoiceGenerator})">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Services.InvoiceGenerator"/> class.
+            </summary>
+            <param name="dataStore">Data storage service.</param>
+            <param name="logger">Logger instance.</param>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.GenerateInvoice(System.Guid,System.DateTime,System.DateTime)">
+            <summary>
+            Generates an invoice for a user for a specific period.
+            </summary>
+            <param name="userId">The user ID to generate invoice for.</param>
+            <param name="periodStart">Start of billing period (UTC).</param>
+            <param name="periodEnd">End of billing period (UTC).</param>
+            <returns>The generated invoice, or null if no viewing records exist.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.GenerateCurrentPeriodInvoice(System.Guid)">
+            <summary>
+            Generates an invoice for the current billing period.
+            </summary>
+            <param name="userId">The user ID to generate invoice for.</param>
+            <returns>The generated invoice, or null if no viewing records exist.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.GetUserInvoices(System.Guid)">
+            <summary>
+            Gets all invoices for a user.
+            </summary>
+            <param name="userId">The user ID.</param>
+            <returns>List of invoices.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.GetInvoice(System.Guid)">
+            <summary>
+            Gets a specific invoice by ID.
+            </summary>
+            <param name="invoiceId">The invoice ID.</param>
+            <returns>The invoice, or null if not found.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.ValidatePeriodStart(System.DateTime)">
+            <summary>
+            Validates period start date.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.ValidatePeriodEnd(System.DateTime,System.DateTime)">
+            <summary>
+            Validates period end date.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.GetConfiguration">
+            <summary>
+            Gets the plugin configuration.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.GetViewingRecords(System.Guid,System.DateTime,System.DateTime)">
+            <summary>
+            Gets viewing records for the period.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.CreateInvoice(System.Guid,System.DateTime,System.DateTime,Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration)">
+            <summary>
+            Creates a new invoice.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.AddLineItems(JellyfinInvoice.Models.Invoice,System.Collections.Generic.List{JellyfinInvoice.Models.ViewingRecord},Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration)">
+            <summary>
+            Adds line items to invoice from viewing records.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.GetHourlyRate(Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration)">
+            <summary>
+            Gets the validated hourly rate.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.CreateLineItem(JellyfinInvoice.Models.ViewingRecord,System.Decimal,Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration)">
+            <summary>
+            Creates a line item from a viewing record.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.FormatDescription(JellyfinInvoice.Models.ViewingRecord,Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration)">
+            <summary>
+            Formats the line item description.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.CalculateHours(JellyfinInvoice.Models.ViewingRecord)">
+            <summary>
+            Calculates billable hours from a viewing record.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.InvoiceGenerator.SaveInvoice(JellyfinInvoice.Models.Invoice)">
+            <summary>
+            Saves the invoice to storage.
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Services.ViewingTracker">
+            <summary>
+            Tracks user viewing activity by listening to Jellyfin playback events.
+            Creates ViewingRecords when playback sessions complete.
+            </summary>
+        </member>
+        <member name="F:JellyfinInvoice.Services.ViewingTracker._activeSessions">
+            <summary>
+            Tracks active playback sessions: SessionId -> StartTime.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.#ctor(MediaBrowser.Controller.Session.ISessionManager,Microsoft.Extensions.Logging.ILogger{JellyfinInvoice.Services.ViewingTracker},JellyfinInvoice.Services.DataStore)">
+            <summary>
+            Initializes a new instance of the <see cref="T:JellyfinInvoice.Services.ViewingTracker"/> class.
+            </summary>
+            <param name="sessionManager">Jellyfin session manager.</param>
+            <param name="logger">Logger instance.</param>
+            <param name="dataStore">Data storage service.</param>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.StartAsync(System.Threading.CancellationToken)">
+            <summary>
+            Starts tracking playback events.
+            Called by Jellyfin when the plugin loads.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A completed task.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.StopAsync(System.Threading.CancellationToken)">
+            <summary>
+            Stops tracking playback events.
+            Called by Jellyfin when the plugin unloads.
+            </summary>
+            <param name="cancellationToken">Cancellation token.</param>
+            <returns>A completed task.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.OnPlaybackStart(System.Object,MediaBrowser.Controller.Library.PlaybackProgressEventArgs)">
+            <summary>
+            Handles playback start events.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.OnPlaybackStopped(System.Object,MediaBrowser.Controller.Library.PlaybackStopEventArgs)">
+            <summary>
+            Handles playback stop events.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.IsTrackingEnabled">
+            <summary>
+            Checks if tracking is enabled in configuration.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.ExtractSessionId(MediaBrowser.Controller.Library.PlaybackProgressEventArgs)">
+            <summary>
+            Extracts and validates session ID from event args.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.CreatePlaybackSession(MediaBrowser.Controller.Library.PlaybackProgressEventArgs)">
+            <summary>
+            Creates a playback session record from event args.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.ExtractUserId(MediaBrowser.Controller.Library.PlaybackProgressEventArgs)">
+            <summary>
+            Extracts and validates user ID from event args.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.ExtractItemId(MediaBrowser.Controller.Library.PlaybackProgressEventArgs)">
+            <summary>
+            Extracts and validates item ID from event args.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.ExtractItemName(MediaBrowser.Controller.Library.PlaybackProgressEventArgs)">
+            <summary>
+            Extracts and sanitizes item name from event args.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.CreateViewingRecord(JellyfinInvoice.Services.ViewingTracker.PlaybackSession,MediaBrowser.Controller.Library.PlaybackStopEventArgs)">
+            <summary>
+            Creates a viewing record from a completed session.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.CalculateDuration(System.DateTime,System.DateTime,MediaBrowser.Controller.Library.PlaybackStopEventArgs)">
+            <summary>
+            Calculates playback duration.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.SaveRecord(JellyfinInvoice.Models.ViewingRecord)">
+            <summary>
+            Saves a viewing record to storage.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Services.ViewingTracker.Dispose">
+            <summary>
+            Disposes of resources.
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Services.ViewingTracker.PlaybackSession">
+            <summary>
+            Represents an active playback session.
+            </summary>
+        </member>
+        <member name="T:JellyfinInvoice.Validation.InputSanitizer">
+            <summary>
+            Centralized input validation and sanitization.
+            All external data MUST flow through these methods before use.
+            </summary>
+        </member>
+        <member name="F:JellyfinInvoice.Validation.InputSanitizer.AbsoluteMaxStringLength">
+            <summary>
+            Maximum allowed string length to prevent memory exhaustion.
+            </summary>
+        </member>
+        <member name="F:JellyfinInvoice.Validation.InputSanitizer.CurrencyCodePattern">
+            <summary>
+            Pattern for valid ISO 4217 currency codes.
+            </summary>
+        </member>
+        <member name="F:JellyfinInvoice.Validation.InputSanitizer.DangerousPatternRegex">
+            <summary>
+            Pattern to detect potential injection attempts.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ValidateGuid(System.String,System.String)">
+            <summary>
+            Validates and returns a GUID from a string input.
+            </summary>
+            <param name="input">The raw GUID string.</param>
+            <param name="paramName">Parameter name for error messages.</param>
+            <returns>A valid Guid.</returns>
+            <exception cref="T:System.ArgumentException">Thrown if input is not a valid GUID.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ValidateGuid(System.Guid,System.String)">
+            <summary>
+            Validates a Guid is not empty.
+            </summary>
+            <param name="input">The GUID to validate.</param>
+            <param name="paramName">Parameter name for error messages.</param>
+            <returns>The validated GUID.</returns>
+            <exception cref="T:System.ArgumentException">Thrown if GUID is empty.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.SanitizeString(System.String,System.Int32,System.Boolean)">
+            <summary>
+            Sanitizes a string by removing dangerous characters and limiting length.
+            </summary>
+            <param name="input">The raw input string.</param>
+            <param name="maxLength">Maximum allowed length.</param>
+            <param name="allowNewlines">Whether to allow newline characters.</param>
+            <returns>Sanitized string, or empty string if input was null.</returns>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ValidateCurrencyCode(System.String)">
+            <summary>
+            Validates an ISO 4217 currency code.
+            </summary>
+            <param name="input">The raw currency code.</param>
+            <returns>Validated uppercase currency code.</returns>
+            <exception cref="T:System.ArgumentException">Thrown if code is invalid.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ValidateDecimalRange(System.Decimal,System.Decimal,System.Decimal,System.String)">
+            <summary>
+            Validates a decimal value is within acceptable range.
+            </summary>
+            <param name="input">The value to validate.</param>
+            <param name="min">Minimum allowed value.</param>
+            <param name="max">Maximum allowed value.</param>
+            <param name="paramName">Parameter name for error messages.</param>
+            <returns>The validated value.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown if value is out of range.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ValidateIntRange(System.Int32,System.Int32,System.Int32,System.String)">
+            <summary>
+            Validates an integer value is within acceptable range.
+            </summary>
+            <param name="input">The value to validate.</param>
+            <param name="min">Minimum allowed value.</param>
+            <param name="max">Maximum allowed value.</param>
+            <param name="paramName">Parameter name for error messages.</param>
+            <returns>The validated value.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown if value is out of range.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ValidateDateTime(System.DateTime,System.String)">
+            <summary>
+            Validates a DateTime is within acceptable bounds.
+            </summary>
+            <param name="input">The date to validate.</param>
+            <param name="paramName">Parameter name for error messages.</param>
+            <returns>The validated UTC DateTime.</returns>
+            <exception cref="T:System.ArgumentException">Thrown if date is invalid.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ValidateDurationTicks(System.Int64,System.String)">
+            <summary>
+            Validates duration ticks are non-negative and reasonable.
+            </summary>
+            <param name="ticks">The duration in ticks.</param>
+            <param name="paramName">Parameter name for error messages.</param>
+            <returns>Validated ticks value.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">Thrown if ticks are invalid.</exception>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.RemoveControlCharacters(System.String,System.Boolean)">
+            <summary>
+            Removes control characters from a string.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.ContainsDangerousPattern(System.String)">
+            <summary>
+            Checks if input contains potentially dangerous patterns.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.RemoveDangerousPatterns(System.String)">
+            <summary>
+            Removes dangerous patterns from input.
+            </summary>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.CreateCurrencyCodeRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[A-Z]{3}$</code><br/>
+            Options:<br/>
+            <code>RegexOptions.Compiled</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [A-Z] exactly 3 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="M:JellyfinInvoice.Validation.InputSanitizer.CreateDangerousPatternRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>&lt;script|&lt;/script|javascript:|data:|vbscript:|onclick|onerror|onload|eval\\(|expression\\(|\\.\\./|\\.\\.\\\\|\\x00</code><br/>
+            Options:<br/>
+            <code>RegexOptions.IgnoreCase | RegexOptions.Compiled</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match with 12 alternative expressions, atomically.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match '&lt;'.<br/>
+                    ○ Match with 2 alternative expressions, atomically.<br/>
+                        ○ Match a sequence of expressions.<br/>
+                            ○ Match a character in the set [Ss].<br/>
+                            ○ Match a character in the set [Cc].<br/>
+                            ○ Match a character in the set [Rr].<br/>
+                            ○ Match a character in the set [Ii].<br/>
+                            ○ Match a character in the set [Pp].<br/>
+                            ○ Match a character in the set [Tt].<br/>
+                        ○ Match a sequence of expressions.<br/>
+                            ○ Match '/'.<br/>
+                            ○ Match a character in the set [Ss].<br/>
+                            ○ Match a character in the set [Cc].<br/>
+                            ○ Match a character in the set [Rr].<br/>
+                            ○ Match a character in the set [Ii].<br/>
+                            ○ Match a character in the set [Pp].<br/>
+                            ○ Match a character in the set [Tt].<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Jj].<br/>
+                    ○ Match a character in the set [Aa].<br/>
+                    ○ Match a character in the set [Vv].<br/>
+                    ○ Match a character in the set [Aa].<br/>
+                    ○ Match a character in the set [Ss].<br/>
+                    ○ Match a character in the set [Cc].<br/>
+                    ○ Match a character in the set [Rr].<br/>
+                    ○ Match a character in the set [Ii].<br/>
+                    ○ Match a character in the set [Pp].<br/>
+                    ○ Match a character in the set [Tt].<br/>
+                    ○ Match ':'.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Dd].<br/>
+                    ○ Match a character in the set [Aa].<br/>
+                    ○ Match a character in the set [Tt].<br/>
+                    ○ Match a character in the set [Aa].<br/>
+                    ○ Match ':'.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Vv].<br/>
+                    ○ Match a character in the set [Bb].<br/>
+                    ○ Match a character in the set [Ss].<br/>
+                    ○ Match a character in the set [Cc].<br/>
+                    ○ Match a character in the set [Rr].<br/>
+                    ○ Match a character in the set [Ii].<br/>
+                    ○ Match a character in the set [Pp].<br/>
+                    ○ Match a character in the set [Tt].<br/>
+                    ○ Match ':'.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Oo].<br/>
+                    ○ Match a character in the set [Nn].<br/>
+                    ○ Match a character in the set [Cc].<br/>
+                    ○ Match a character in the set [Ll].<br/>
+                    ○ Match a character in the set [Ii].<br/>
+                    ○ Match a character in the set [Cc].<br/>
+                    ○ Match a character in the set [Kk\u212A].<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Oo].<br/>
+                    ○ Match a character in the set [Nn].<br/>
+                    ○ Match a character in the set [Ee].<br/>
+                    ○ Match a character in the set [Rr] exactly 2 times.<br/>
+                    ○ Match a character in the set [Oo].<br/>
+                    ○ Match a character in the set [Rr].<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Oo].<br/>
+                    ○ Match a character in the set [Nn].<br/>
+                    ○ Match a character in the set [Ll].<br/>
+                    ○ Match a character in the set [Oo].<br/>
+                    ○ Match a character in the set [Aa].<br/>
+                    ○ Match a character in the set [Dd].<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Ee].<br/>
+                    ○ Match a character in the set [Vv].<br/>
+                    ○ Match a character in the set [Aa].<br/>
+                    ○ Match a character in the set [Ll].<br/>
+                    ○ Match '('.<br/>
+                ○ Match a sequence of expressions.<br/>
+                    ○ Match a character in the set [Ee].<br/>
+                    ○ Match a character in the set [Xx].<br/>
+                    ○ Match a character in the set [Pp].<br/>
+                    ○ Match a character in the set [Rr].<br/>
+                    ○ Match a character in the set [Ee].<br/>
+                    ○ Match a character in the set [Ss] exactly 2 times.<br/>
+                    ○ Match a character in the set [Ii].<br/>
+                    ○ Match a character in the set [Oo].<br/>
+                    ○ Match a character in the set [Nn].<br/>
+                    ○ Match '('.<br/>
+                ○ Match the string "../".<br/>
+                ○ Match the string "..\\".<br/>
+                ○ Match '\0'.<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration">
+            <summary>
+            Plugin configuration model.
+            Contains all user-configurable settings for the invoice plugin.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration"/> class.
+            Sets secure default values.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration.EnableTracking">
+            <summary>
+            Gets or sets a value indicating whether viewing tracking is enabled.
+            Disabled by default - must be explicitly enabled.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration.CurrencyCode">
+            <summary>
+            Gets or sets the ISO 4217 currency code for invoices.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration.DefaultRatePerHour">
+            <summary>
+            Gets or sets the default hourly rate for viewing charges.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration.InvoicePeriodDays">
+            <summary>
+            Gets or sets the invoice billing period in days.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration.MaxTitleLength">
+            <summary>
+            Gets or sets the maximum allowed length for media titles.
+            Used by InputSanitizer for validation.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.JellyfinInvoice.Configuration.PluginConfiguration.MaxDescriptionLength">
+            <summary>
+            Gets or sets the maximum allowed length for descriptions.
+            Used by InputSanitizer for validation.
+            </summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the CreateCurrencyCodeRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateCurrencyCodeRegex_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the CreateDangerousPatternRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.CreateDangerousPatternRegex_1.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_ascii_1000000004000103084400030844000">
+            <summary>Supports searching for characters in or not in "\0.&lt;DEJOVdejov".</summary>
+        </member>
+    </members>
+</doc>

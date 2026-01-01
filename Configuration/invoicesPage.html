@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Invoice Viewer</title>
+    <style>
+        .invoice-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .invoice-controls {
+            display: flex;
+            gap: 1em;
+            align-items: center;
+            margin-bottom: 1.5em;
+            flex-wrap: wrap;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5em;
+        }
+        .invoice-table th,
+        .invoice-table td {
+            padding: 0.75em;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .invoice-table th {
+            font-weight: 600;
+            color: #999;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .invoice-table tr:hover {
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+        }
+        .invoice-table .amount {
+            text-align: right;
+            font-family: monospace;
+        }
+        .invoice-details {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 1.5em;
+            margin-top: 1em;
+        }
+        .invoice-details h3 {
+            margin-top: 0;
+            margin-bottom: 1em;
+        }
+        .invoice-total {
+            font-size: 1.2em;
+            font-weight: 600;
+            text-align: right;
+            padding-top: 1em;
+            border-top: 2px solid rgba(255,255,255,0.2);
+            margin-top: 1em;
+        }
+        .no-invoices {
+            text-align: center;
+            padding: 2em;
+            color: #888;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="InvoicesPage" data-role="page" class="page type-interior pluginConfigurationPage">
+        <div data-role="content">
+            <div class="content-primary invoice-container">
+                <h2>Invoice Viewer</h2>
+
+                <div class="invoice-controls">
+                    <div class="inputContainer" style="flex: 1; min-width: 200px;">
+                        <label class="inputLabel" for="UserSelect">Select User</label>
+                        <select id="UserSelect" class="emby-select">
+                            <option value="">-- Select a user --</option>
+                        </select>
+                    </div>
+                    <button id="GenerateInvoiceBtn" class="raised emby-button" disabled>
+                        <span>Generate Invoice</span>
+                    </button>
+                </div>
+
+                <div id="InvoiceList" class="hidden">
+                    <h3>Invoices for <span id="SelectedUserName"></span></h3>
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Created</th>
+                                <th class="amount">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="InvoiceTableBody">
+                        </tbody>
+                    </table>
+                    <div id="NoInvoices" class="no-invoices hidden">
+                        No invoices found for this user.
+                    </div>
+                </div>
+
+                <div id="InvoiceDetails" class="invoice-details hidden">
+                    <h3>Invoice Details</h3>
+                    <p>
+                        <strong>Period:</strong> <span id="DetailPeriod"></span><br>
+                        <strong>Created:</strong> <span id="DetailCreated"></span>
+                    </p>
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th class="amount">Hours</th>
+                                <th class="amount">Rate</th>
+                                <th class="amount">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="LineItemsBody">
+                        </tbody>
+                    </table>
+                    <div class="invoice-total">
+                        Total: <span id="DetailTotal"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var InvoiceViewer = {
+            currentUserId: null,
+            currentInvoices: [],
+            currencyCode: 'USD',
+
+            init: function() {
+                this.loadUsers();
+                this.bindEvents();
+            },
+
+            bindEvents: function() {
+                document.getElementById('UserSelect').addEventListener('change', this.onUserChange.bind(this));
+                document.getElementById('GenerateInvoiceBtn').addEventListener('click', this.generateInvoice.bind(this));
+            },
+
+            loadUsers: function() {
+                var self = this;
+                ApiClient.getUsers().then(function(users) {
+                    var select = document.getElementById('UserSelect');
+                    users.forEach(function(user) {
+                        var option = document.createElement('option');
+                        option.value = user.Id;
+                        option.textContent = user.Name;
+                        select.appendChild(option);
+                    });
+                });
+            },
+
+            onUserChange: function(e) {
+                var userId = e.target.value;
+                var selectedOption = e.target.options[e.target.selectedIndex];
+
+                document.getElementById('GenerateInvoiceBtn').disabled = !userId;
+
+                if (userId) {
+                    this.currentUserId = userId;
+                    document.getElementById('SelectedUserName').textContent = selectedOption.textContent;
+                    this.loadInvoices(userId);
+                } else {
+                    this.currentUserId = null;
+                    document.getElementById('InvoiceList').classList.add('hidden');
+                    document.getElementById('InvoiceDetails').classList.add('hidden');
+                }
+            },
+
+            loadInvoices: function(userId) {
+                var self = this;
+                Dashboard.showLoadingMsg();
+
+                var url = ApiClient.getUrl('Invoice/User/' + userId);
+                ApiClient.fetch({
+                    url: url,
+                    type: 'GET',
+                    dataType: 'json'
+                }).then(function(invoices) {
+                    self.currentInvoices = invoices || [];
+                    self.renderInvoices(invoices);
+                    Dashboard.hideLoadingMsg();
+                }).catch(function(err) {
+                    console.error('Failed to load invoices:', err);
+                    self.currentInvoices = [];
+                    self.renderInvoices([]);
+                    Dashboard.hideLoadingMsg();
+                });
+            },
+
+            renderInvoices: function(invoices) {
+                var listDiv = document.getElementById('InvoiceList');
+                var tbody = document.getElementById('InvoiceTableBody');
+                var noInvoices = document.getElementById('NoInvoices');
+
+                tbody.innerHTML = '';
+                document.getElementById('InvoiceDetails').classList.add('hidden');
+
+                listDiv.classList.remove('hidden');
+
+                if (!invoices || invoices.length === 0) {
+                    noInvoices.classList.remove('hidden');
+                    return;
+                }
+
+                noInvoices.classList.add('hidden');
+
+                var self = this;
+                invoices.forEach(function(invoice, index) {
+                    var tr = document.createElement('tr');
+                    tr.dataset.index = index;
+                    tr.innerHTML =
+                        '<td>' + self.formatDateRange(invoice.PeriodStart, invoice.PeriodEnd) + '</td>' +
+                        '<td>' + self.formatDate(invoice.CreatedAt) + '</td>' +
+                        '<td class="amount">' + self.formatCurrency(invoice.TotalAmount, invoice.CurrencyCode) + '</td>';
+                    tr.addEventListener('click', function() {
+                        self.showInvoiceDetails(invoice);
+                    });
+                    tbody.appendChild(tr);
+                });
+            },
+
+            showInvoiceDetails: function(invoice) {
+                var detailsDiv = document.getElementById('InvoiceDetails');
+                var tbody = document.getElementById('LineItemsBody');
+
+                document.getElementById('DetailPeriod').textContent = this.formatDateRange(invoice.PeriodStart, invoice.PeriodEnd);
+                document.getElementById('DetailCreated').textContent = this.formatDate(invoice.CreatedAt);
+                document.getElementById('DetailTotal').textContent = this.formatCurrency(invoice.TotalAmount, invoice.CurrencyCode);
+
+                tbody.innerHTML = '';
+
+                var self = this;
+                if (invoice.LineItems && invoice.LineItems.length > 0) {
+                    invoice.LineItems.forEach(function(item) {
+                        var tr = document.createElement('tr');
+                        tr.innerHTML =
+                            '<td>' + self.escapeHtml(item.Description) + '</td>' +
+                            '<td class="amount">' + item.Quantity.toFixed(2) + '</td>' +
+                            '<td class="amount">' + self.formatCurrency(item.UnitPrice, invoice.CurrencyCode) + '</td>' +
+                            '<td class="amount">' + self.formatCurrency(item.Amount, invoice.CurrencyCode) + '</td>';
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="4" style="text-align:center;color:#888;">No line items</td>';
+                    tbody.appendChild(tr);
+                }
+
+                detailsDiv.classList.remove('hidden');
+            },
+
+            generateInvoice: function() {
+                if (!this.currentUserId) return;
+
+                var self = this;
+                Dashboard.showLoadingMsg();
+
+                var url = ApiClient.getUrl('Invoice/Generate/' + this.currentUserId);
+                ApiClient.fetch({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json'
+                }).then(function(invoice) {
+                    Dashboard.hideLoadingMsg();
+                    if (invoice) {
+                        Dashboard.alert('Invoice generated successfully!');
+                        self.loadInvoices(self.currentUserId);
+                    } else {
+                        Dashboard.alert('No viewing activity found for the current period.');
+                    }
+                }).catch(function(err) {
+                    Dashboard.hideLoadingMsg();
+                    console.error('Failed to generate invoice:', err);
+                    Dashboard.alert('Failed to generate invoice. Check if tracking is enabled.');
+                });
+            },
+
+            formatDate: function(dateStr) {
+                var date = new Date(dateStr);
+                return date.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            },
+
+            formatDateRange: function(startStr, endStr) {
+                var start = new Date(startStr);
+                var end = new Date(endStr);
+                var opts = { month: 'short', day: 'numeric' };
+                var yearOpts = { year: 'numeric', month: 'short', day: 'numeric' };
+
+                if (start.getFullYear() === end.getFullYear()) {
+                    return start.toLocaleDateString(undefined, opts) + ' - ' + end.toLocaleDateString(undefined, yearOpts);
+                }
+                return start.toLocaleDateString(undefined, yearOpts) + ' - ' + end.toLocaleDateString(undefined, yearOpts);
+            },
+
+            formatCurrency: function(amount, currencyCode) {
+                return new Intl.NumberFormat(undefined, {
+                    style: 'currency',
+                    currency: currencyCode || 'USD'
+                }).format(amount);
+            },
+
+            escapeHtml: function(text) {
+                var div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
+        document.getElementById('InvoicesPage').addEventListener('viewshow', function() {
+            InvoiceViewer.init();
+        });
+    </script>
+</body>
+</html>
