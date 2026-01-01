@@ -18,11 +18,12 @@
 
                 <h3>Settings</h3>
                 <form id="InvoiceConfigForm">
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input type="checkbox" id="EnableTracking" name="EnableTracking" class="emby-checkbox" />
-                            <span>Enable Tracking</span>
-                        </label>
+                    <div class="inputContainer">
+                        <label class="inputLabel">Enable Tracking</label>
+                        <select id="EnableTracking" class="emby-select">
+                            <option value="false">Disabled</option>
+                            <option value="true">Enabled</option>
+                        </select>
                         <div class="fieldDescription">Enable viewing activity tracking for invoice generation.</div>
                     </div>
 
@@ -61,7 +62,7 @@
             loadConfiguration: function () {
                 Dashboard.showLoadingMsg();
                 ApiClient.getPluginConfiguration(InvoiceConfig.pluginUniqueId).then(function (config) {
-                    document.getElementById('EnableTracking').checked = config.EnableTracking;
+                    document.getElementById('EnableTracking').value = config.EnableTracking ? 'true' : 'false';
                     document.getElementById('CurrencyCode').value = config.CurrencyCode || 'USD';
                     document.getElementById('DefaultRatePerHour').value = config.DefaultRatePerHour || 0;
                     document.getElementById('InvoicePeriodDays').value = config.InvoicePeriodDays || 30;
@@ -74,7 +75,7 @@
                 Dashboard.showLoadingMsg();
 
                 ApiClient.getPluginConfiguration(InvoiceConfig.pluginUniqueId).then(function (config) {
-                    config.EnableTracking = document.getElementById('EnableTracking').checked;
+                    config.EnableTracking = document.getElementById('EnableTracking').value === 'true';
                     config.CurrencyCode = document.getElementById('CurrencyCode').value.toUpperCase();
                     config.DefaultRatePerHour = parseFloat(document.getElementById('DefaultRatePerHour').value) || 0;
                     config.InvoicePeriodDays = parseInt(document.getElementById('InvoicePeriodDays').value) || 30;
