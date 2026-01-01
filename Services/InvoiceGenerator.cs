@@ -96,6 +96,17 @@ public sealed class InvoiceGenerator
     }
 
     /// <summary>
+    /// Deletes an invoice by ID.
+    /// </summary>
+    /// <param name="invoiceId">The invoice ID.</param>
+    /// <returns>True if deleted, false if not found.</returns>
+    public bool DeleteInvoice(Guid invoiceId)
+    {
+        var validId = InputSanitizer.ValidateGuid(invoiceId, nameof(invoiceId));
+        return _dataStore.DeleteInvoice(validId);
+    }
+
+    /// <summary>
     /// Validates period start date.
     /// </summary>
     private static DateTime ValidatePeriodStart(DateTime periodStart)

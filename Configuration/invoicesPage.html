@@ -66,6 +66,22 @@
         .hidden {
             display: none;
         }
+        .delete-btn {
+            background: #c62828;
+            color: white;
+            border: none;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .delete-btn:hover {
+            background: #b71c1c;
+        }
+        .actions {
+            text-align: center;
+            width: 80px;
+        }
     </style>
 </head>
 <body>
@@ -94,6 +110,7 @@
                                 <th>Period</th>
                                 <th>Created</th>
                                 <th class="amount">Total</th>
+                                <th class="actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="InvoiceTableBody">
@@ -219,14 +236,61 @@
                 invoices.forEach(function(invoice, index) {
                     var tr = document.createElement('tr');
                     tr.dataset.index = index;
-                    tr.innerHTML =
-                        '<td>' + self.formatDateRange(invoice.PeriodStart, invoice.PeriodEnd) + '</td>' +
-                        '<td>' + self.formatDate(invoice.CreatedAt) + '</td>' +
-                        '<td class="amount">' + self.formatCurrency(invoice.TotalAmount, invoice.CurrencyCode) + '</td>';
-                    tr.addEventListener('click', function() {
-                        self.showInvoiceDetails(invoice);
+                    tr.dataset.invoiceId = invoice.Id;
+
+                    var periodTd = document.createElement('td');
+                    periodTd.textContent = self.formatDateRange(invoice.PeriodStart, invoice.PeriodEnd);
+                    periodTd.addEventListener('click', function() { self.showInvoiceDetails(invoice); });
+
+                    var createdTd = document.createElement('td');
+                    createdTd.textContent = self.formatDate(invoice.CreatedAt);
+                    createdTd.addEventListener('click', function() { self.showInvoiceDetails(invoice); });
+
+                    var amountTd = document.createElement('td');
+                    amountTd.className = 'amount';
+                    amountTd.textContent = self.formatCurrency(invoice.TotalAmount, invoice.CurrencyCode);
+                    amountTd.addEventListener('click', function() { self.showInvoiceDetails(invoice); });
+
+                    var actionsTd = document.createElement('td');
+                    actionsTd.className = 'actions';
+                    var deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-btn';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        self.deleteInvoice(invoice.Id);
                     });
+                    actionsTd.appendChild(deleteBtn);
+
+                    tr.appendChild(periodTd);
+                    tr.appendChild(createdTd);
+                    tr.appendChild(amountTd);
+                    tr.appendChild(actionsTd);
                     tbody.appendChild(tr);
+                });
+            },
+
+            deleteInvoice: function(invoiceId) {
+                if (!confirm('Are you sure you want to delete this invoice?')) {
+                    return;
+                }
+
+                var self = this;
+                Dashboard.showLoadingMsg();
+
+                var url = ApiClient.getUrl('Invoice/' + invoiceId);
+                ApiClient.fetch({
+                    url: url,
+                    type: 'DELETE'
+                }).then(function() {
+                    Dashboard.hideLoadingMsg();
+                    Dashboard.alert('Invoice deleted.');
+                    document.getElementById('InvoiceDetails').classList.add('hidden');
+                    self.loadInvoices(self.currentUserId);
+                }).catch(function(err) {
+                    Dashboard.hideLoadingMsg();
+                    console.error('Failed to delete invoice:', err);
+                    Dashboard.alert('Failed to delete invoice.');
                 });
             },
 

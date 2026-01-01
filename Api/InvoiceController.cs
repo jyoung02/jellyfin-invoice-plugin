@@ -92,6 +92,35 @@ public class InvoiceController : ControllerBase
     }
 
     /// <summary>
+    /// Deletes an invoice by ID.
+    /// </summary>
+    /// <param name="invoiceId">The invoice ID.</param>
+    /// <returns>No content on success.</returns>
+    [HttpDelete("{invoiceId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public ActionResult DeleteInvoice([FromRoute] string invoiceId)
+    {
+        var validatedId = ValidateInvoiceIdParameter(invoiceId);
+        if (validatedId == null)
+        {
+            return BadRequest("Invalid invoice ID format.");
+        }
+
+        LogRequest("DeleteInvoice", validatedId.Value);
+
+        var deleted = _invoiceGenerator.DeleteInvoice(validatedId.Value);
+        if (!deleted)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// Generates an invoice for the current billing period.
     /// </summary>
     /// <param name="userId">The user ID.</param>

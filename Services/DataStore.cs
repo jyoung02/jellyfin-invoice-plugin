@@ -204,6 +204,37 @@ public sealed class DataStore : IDisposable
     }
 
     /// <summary>
+    /// Deletes an invoice by ID.
+    /// </summary>
+    /// <param name="invoiceId">The invoice ID to delete.</param>
+    /// <returns>True if the invoice was deleted, false if not found.</returns>
+    public bool DeleteInvoice(Guid invoiceId)
+    {
+        var validId = InputSanitizer.ValidateGuid(invoiceId, nameof(invoiceId));
+
+        _lock.Wait();
+        try
+        {
+            var allInvoices = LoadInvoicesInternal();
+            var originalCount = allInvoices.Count;
+            allInvoices.RemoveAll(i => i.Id == validId);
+
+            if (allInvoices.Count < originalCount)
+            {
+                SaveInvoicesInternal(allInvoices);
+                _logger.LogInformation("Deleted invoice {InvoiceId}", validId);
+                return true;
+            }
+
+            return false;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    /// <summary>
     /// Validates a directory path is safe.
     /// </summary>
     private static string ValidateDirectoryPath(string path)
