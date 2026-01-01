@@ -1,6 +1,6 @@
 using System;
 using System.Globalization;
-using Jellyfin.Plugin.JellyfinInvoice.Configuration;
+using JellyfinInvoice.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;

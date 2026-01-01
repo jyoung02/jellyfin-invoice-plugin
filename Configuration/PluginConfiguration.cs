@@ -1,6 +1,6 @@
 using MediaBrowser.Model.Plugins;
 
-namespace Jellyfin.Plugin.JellyfinInvoice.Configuration;
+namespace JellyfinInvoice.Configuration;
 
 /// <summary>
 /// Plugin configuration model.

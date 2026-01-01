@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Jellyfin.Plugin.JellyfinInvoice.Configuration;
+using JellyfinInvoice.Configuration;
 using JellyfinInvoice.Models;
 using JellyfinInvoice.Validation;
 using MediaBrowser.Controller.Library;

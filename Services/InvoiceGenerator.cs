@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Jellyfin.Plugin.JellyfinInvoice.Configuration;
+using JellyfinInvoice.Configuration;
 using JellyfinInvoice.Models;
 using JellyfinInvoice.Validation;
 using Microsoft.Extensions.Logging;
