@@ -80,24 +80,24 @@
                 console.log('Saving Invoice Generator configuration...');
                 Dashboard.showLoadingMsg();
 
-                var newConfig = {
-                    EnableTracking: document.getElementById('EnableTracking').value === 'true',
-                    CurrencyCode: document.getElementById('CurrencyCode').value.toUpperCase() || 'USD',
-                    DefaultRatePerHour: parseFloat(document.getElementById('DefaultRatePerHour').value) || 0,
-                    InvoicePeriodDays: parseInt(document.getElementById('InvoicePeriodDays').value) || 30,
-                    MaxTitleLength: 200,
-                    MaxDescriptionLength: 500
-                };
+                ApiClient.getPluginConfiguration(InvoiceConfig.pluginUniqueId).then(function (config) {
+                    console.log('Got existing config:', config);
 
-                console.log('New config:', newConfig);
+                    config.EnableTracking = document.getElementById('EnableTracking').value === 'true';
+                    config.CurrencyCode = document.getElementById('CurrencyCode').value.toUpperCase() || 'USD';
+                    config.DefaultRatePerHour = parseFloat(document.getElementById('DefaultRatePerHour').value) || 0;
+                    config.InvoicePeriodDays = parseInt(document.getElementById('InvoicePeriodDays').value) || 30;
 
-                ApiClient.updatePluginConfiguration(InvoiceConfig.pluginUniqueId, newConfig).then(function () {
+                    console.log('Updated config:', config);
+
+                    return ApiClient.updatePluginConfiguration(InvoiceConfig.pluginUniqueId, config);
+                }).then(function () {
                     console.log('Config saved successfully');
                     Dashboard.processPluginConfigurationUpdateResult();
                 }).catch(function (err) {
                     console.error('Failed to save config:', err);
                     Dashboard.hideLoadingMsg();
-                    Dashboard.alert('Failed to save configuration');
+                    Dashboard.alert('Failed to save configuration: ' + err);
                 });
 
                 return false;
