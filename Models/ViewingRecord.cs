@@ -17,10 +17,17 @@ public enum MediaItemType
 
 /// <summary>
 /// Represents a single viewing session for a user.
-/// Immutable after creation to ensure data integrity.
 /// </summary>
 public sealed class ViewingRecord
 {
+    /// <summary>
+    /// Parameterless constructor for JSON deserialization.
+    /// </summary>
+    public ViewingRecord()
+    {
+        ItemName = string.Empty;
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ViewingRecord"/> class.
     /// </summary>
@@ -55,42 +62,42 @@ public sealed class ViewingRecord
     /// <summary>
     /// Gets the unique identifier for this viewing record.
     /// </summary>
-    public Guid Id { get; }
+    public Guid Id { get; init; }
 
     /// <summary>
     /// Gets the Jellyfin user ID who watched the content.
     /// </summary>
-    public Guid UserId { get; }
+    public Guid UserId { get; init; }
 
     /// <summary>
     /// Gets the Jellyfin media item ID that was watched.
     /// </summary>
-    public Guid ItemId { get; }
+    public Guid ItemId { get; init; }
 
     /// <summary>
     /// Gets the sanitized display name of the media item.
     /// </summary>
-    public string ItemName { get; }
+    public string ItemName { get; init; }
 
     /// <summary>
     /// Gets the type of media item (movie, episode, etc.).
     /// </summary>
-    public MediaItemType ItemType { get; }
+    public MediaItemType ItemType { get; init; }
 
     /// <summary>
     /// Gets the UTC timestamp when playback started.
     /// </summary>
-    public DateTime StartTime { get; }
+    public DateTime StartTime { get; init; }
 
     /// <summary>
     /// Gets the UTC timestamp when playback ended.
     /// </summary>
-    public DateTime EndTime { get; }
+    public DateTime EndTime { get; init; }
 
     /// <summary>
     /// Gets the total playback duration in ticks.
     /// </summary>
-    public long DurationTicks { get; }
+    public long DurationTicks { get; init; }
 
     /// <summary>
     /// Gets the duration as a TimeSpan.

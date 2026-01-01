@@ -10,6 +10,15 @@ namespace JellyfinInvoice.Models;
 public sealed class Invoice
 {
     /// <summary>
+    /// Parameterless constructor for JSON deserialization.
+    /// </summary>
+    public Invoice()
+    {
+        CurrencyCode = "USD";
+        LineItems = new List<InvoiceLineItem>();
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Invoice"/> class.
     /// </summary>
     /// <param name="id">Unique invoice identifier.</param>
@@ -36,37 +45,37 @@ public sealed class Invoice
     /// <summary>
     /// Gets the unique invoice identifier.
     /// </summary>
-    public Guid Id { get; }
+    public Guid Id { get; init; }
 
     /// <summary>
     /// Gets the user ID this invoice belongs to.
     /// </summary>
-    public Guid UserId { get; }
+    public Guid UserId { get; init; }
 
     /// <summary>
     /// Gets the start of the billing period (UTC).
     /// </summary>
-    public DateTime PeriodStart { get; }
+    public DateTime PeriodStart { get; init; }
 
     /// <summary>
     /// Gets the end of the billing period (UTC).
     /// </summary>
-    public DateTime PeriodEnd { get; }
+    public DateTime PeriodEnd { get; init; }
 
     /// <summary>
     /// Gets the ISO 4217 currency code.
     /// </summary>
-    public string CurrencyCode { get; }
+    public string CurrencyCode { get; init; }
 
     /// <summary>
     /// Gets when this invoice was created (UTC).
     /// </summary>
-    public DateTime CreatedAt { get; }
+    public DateTime CreatedAt { get; init; }
 
     /// <summary>
     /// Gets the line items on this invoice.
     /// </summary>
-    public List<InvoiceLineItem> LineItems { get; }
+    public List<InvoiceLineItem> LineItems { get; set; }
 
     /// <summary>
     /// Gets the total amount for this invoice.
@@ -108,12 +117,20 @@ public sealed class Invoice
 public sealed class InvoiceLineItem
 {
     /// <summary>
+    /// Parameterless constructor for JSON deserialization.
+    /// </summary>
+    public InvoiceLineItem()
+    {
+        Description = string.Empty;
+    }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="InvoiceLineItem"/> class.
     /// </summary>
     /// <param name="viewingRecordId">Reference to the source viewing record.</param>
     /// <param name="description">Sanitized description of the charge.</param>
-    /// <param name="quantity">Hours watched.</param>
-    /// <param name="unitPrice">Rate per hour.</param>
+    /// <param name="quantity">Quantity.</param>
+    /// <param name="unitPrice">Rate.</param>
     public InvoiceLineItem(
         Guid viewingRecordId,
         string description,
@@ -129,22 +146,22 @@ public sealed class InvoiceLineItem
     /// <summary>
     /// Gets the ID of the viewing record this line item is based on.
     /// </summary>
-    public Guid ViewingRecordId { get; }
+    public Guid ViewingRecordId { get; init; }
 
     /// <summary>
     /// Gets the sanitized description of the charge.
     /// </summary>
-    public string Description { get; }
+    public string Description { get; init; }
 
     /// <summary>
-    /// Gets the quantity (hours watched).
+    /// Gets the quantity.
     /// </summary>
-    public decimal Quantity { get; }
+    public decimal Quantity { get; init; }
 
     /// <summary>
-    /// Gets the unit price (rate per hour).
+    /// Gets the unit price (rate).
     /// </summary>
-    public decimal UnitPrice { get; }
+    public decimal UnitPrice { get; init; }
 
     /// <summary>
     /// Gets the total amount for this line item (Quantity * UnitPrice).
