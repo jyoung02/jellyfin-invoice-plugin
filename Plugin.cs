@@ -66,7 +66,9 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
             new PluginPageInfo
             {
                 Name = "Invoices",
-                EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.invoicesPage.html"
+                EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.invoicesPage.html",
+                MenuSection = "admin",
+                MenuIcon = "receipt"
             }
         };
     }
