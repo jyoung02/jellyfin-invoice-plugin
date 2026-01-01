@@ -186,14 +186,15 @@ public sealed class InvoiceGenerator
 
     /// <summary>
     /// Gets the flat rate for a given media type.
+    /// Uses defaults if config values are 0 (handles migration from old config).
     /// </summary>
     private static decimal GetRateForItemType(MediaItemType itemType, PluginConfiguration config)
     {
         var rate = itemType switch
         {
-            MediaItemType.Movie => config.MovieRate,
-            MediaItemType.Episode => config.EpisodeRate,
-            _ => config.OtherRate
+            MediaItemType.Movie => config.MovieRate > 0 ? config.MovieRate : 5.00m,
+            MediaItemType.Episode => config.EpisodeRate > 0 ? config.EpisodeRate : 1.00m,
+            _ => config.OtherRate > 0 ? config.OtherRate : 1.00m
         };
 
         return InputSanitizer.ValidateDecimalRange(rate, min: 0m, max: 10000m, paramName: "Rate");
