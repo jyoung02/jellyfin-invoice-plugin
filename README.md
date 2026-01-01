@@ -46,7 +46,7 @@ Access the plugin settings via **Dashboard > Plugins > Invoice Generator**:
 
 ## Viewing Invoices
 
-Access the invoice viewer via **Invoices** in the admin dashboard sidebar:
+Access the invoice viewer from **Dashboard > My Plugins > Invoice Generator**, then click **Open Invoice Viewer**:
 
 1. Select a user from the dropdown
 2. View all invoices with billing period, total amount, and creation date
