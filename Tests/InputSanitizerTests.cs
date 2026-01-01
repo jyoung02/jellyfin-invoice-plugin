@@ -85,9 +85,10 @@ public class InputSanitizerTests
     [Fact]
     public void SanitizeString_ExceedsMaxLength_Truncates()
     {
-        var input = "This is a very long string";
+        var input = "ThisIsAVeryLongString";
         var result = InputSanitizer.SanitizeString(input, 10);
         Assert.Equal(10, result.Length);
+        Assert.Equal("ThisIsAVer", result);
     }
 
     [Fact]
@@ -135,7 +136,8 @@ public class InputSanitizerTests
     {
         var input = "file.txt\x00.exe";
         var result = InputSanitizer.SanitizeString(input, 100);
-        Assert.DoesNotContain("\x00", result);
+        Assert.Equal("file.txt.exe", result);
+        Assert.False(result.Contains('\x00'));
     }
 
     #endregion

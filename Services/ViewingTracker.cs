@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 using Jellyfin.Plugin.JellyfinInvoice.Configuration;
 using JellyfinInvoice.Models;
 using JellyfinInvoice.Validation;
 using MediaBrowser.Controller.Library;
-using MediaBrowser.Controller.Plugins;
 using MediaBrowser.Controller.Session;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace JellyfinInvoice.Services;
@@ -14,7 +16,7 @@ namespace JellyfinInvoice.Services;
 /// Tracks user viewing activity by listening to Jellyfin playback events.
 /// Creates ViewingRecords when playback sessions complete.
 /// </summary>
-public sealed class ViewingTracker : IServerEntryPoint, IDisposable
+public sealed class ViewingTracker : IHostedService, IDisposable
 {
     private readonly ISessionManager _sessionManager;
     private readonly ILogger<ViewingTracker> _logger;
@@ -45,11 +47,29 @@ public sealed class ViewingTracker : IServerEntryPoint, IDisposable
     /// Starts tracking playback events.
     /// Called by Jellyfin when the plugin loads.
     /// </summary>
-    public void Run()
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A completed task.</returns>
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _sessionManager.PlaybackStart += OnPlaybackStart;
         _sessionManager.PlaybackStopped += OnPlaybackStopped;
         _logger.LogInformation("ViewingTracker started");
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Stops tracking playback events.
+    /// Called by Jellyfin when the plugin unloads.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A completed task.</returns>
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _sessionManager.PlaybackStart -= OnPlaybackStart;
+        _sessionManager.PlaybackStopped -= OnPlaybackStopped;
+        _activeSessions.Clear();
+        _logger.LogInformation("ViewingTracker stopped");
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -299,14 +319,11 @@ public sealed class ViewingTracker : IServerEntryPoint, IDisposable
     }
 
     /// <summary>
-    /// Disposes of resources and unsubscribes from events.
+    /// Disposes of resources.
     /// </summary>
     public void Dispose()
     {
-        _sessionManager.PlaybackStart -= OnPlaybackStart;
-        _sessionManager.PlaybackStopped -= OnPlaybackStopped;
         _activeSessions.Clear();
-        _logger.LogInformation("ViewingTracker stopped");
     }
 
     /// <summary>
