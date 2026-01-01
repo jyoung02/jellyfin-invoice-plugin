@@ -1,5 +1,9 @@
 # Jellyfin Invoice Generator Plugin
 
+[![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)](https://github.com/jyoung02/jellyfin-invoice-plugin/releases)
+[![Jellyfin](https://img.shields.io/badge/Jellyfin-10.9+-purple.svg)](https://jellyfin.org/)
+[![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
+
 A Jellyfin plugin that tracks user viewing activity and generates invoices based on media consumption. Designed for media libraries that need to bill users based on their viewing time.
 
 ## What It Does
@@ -46,7 +50,7 @@ Access the plugin settings via **Dashboard > Plugins > Invoice Generator**:
 
 ## Viewing Invoices
 
-Access the invoice viewer from **Dashboard > My Plugins > Invoice Generator**, then click **Open Invoice Viewer**:
+Access the invoice viewer from **Dashboard > Plugins > Invoice Generator**, then click **Open Invoice Viewer**:
 
 1. Select a user from the dropdown
 2. View all invoices with billing period, total amount, and creation date
