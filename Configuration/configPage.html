@@ -46,7 +46,7 @@
                     </div>
 
                     <div>
-                        <button type="submit" class="raised button-submit block emby-button">
+                        <button type="button" id="SaveButton" class="raised button-submit block emby-button" onclick="InvoiceConfig.saveConfiguration(event)">
                             <span>Save</span>
                         </button>
                     </div>
@@ -104,9 +104,16 @@
             }
         };
 
+        // Try multiple ways to attach load event
         document.getElementById('InvoiceConfigPage').addEventListener('viewshow', InvoiceConfig.loadConfiguration);
         document.getElementById('InvoiceConfigPage').addEventListener('pageshow', InvoiceConfig.loadConfiguration);
-        document.getElementById('InvoiceConfigForm').addEventListener('submit', InvoiceConfig.saveConfiguration);
+
+        // Also load immediately in case events don't fire
+        console.log('Invoice Generator plugin script loaded');
+        setTimeout(function() {
+            console.log('Loading config after timeout...');
+            InvoiceConfig.loadConfiguration();
+        }, 500);
     </script>
 </body>
 </html>
