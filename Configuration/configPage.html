@@ -5,115 +5,97 @@
     <title>Invoice Generator</title>
 </head>
 <body>
-    <div id="InvoiceConfigPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div id="InvoiceConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select">
         <div data-role="content">
             <div class="content-primary">
                 <div style="margin-bottom: 2em; padding: 1em; background: rgba(0,0,0,0.2); border-radius: 8px;">
                     <h3 style="margin-top: 0;">View Invoices</h3>
                     <p>View and generate invoices for your users.</p>
-                    <a href="configurationpage?name=Invoices" class="raised emby-button">
+                    <a is="emby-linkbutton" href="configurationpage?name=Invoices" class="raised button-submit emby-button">
                         <span>Open Invoice Viewer</span>
                     </a>
                 </div>
 
                 <h3>Settings</h3>
-                <form id="InvoiceConfigForm">
-                    <div class="inputContainer">
-                        <label class="inputLabel">Enable Tracking</label>
-                        <select id="EnableTracking" class="emby-select">
-                            <option value="false">Disabled</option>
-                            <option value="true">Enabled</option>
-                        </select>
-                        <div class="fieldDescription">Enable viewing activity tracking for invoice generation.</div>
-                    </div>
+                <div class="inputContainer">
+                    <label class="inputLabel">Enable Tracking</label>
+                    <select is="emby-select" id="EnableTracking" class="emby-select">
+                        <option value="false">Disabled</option>
+                        <option value="true">Enabled</option>
+                    </select>
+                    <div class="fieldDescription">Enable viewing activity tracking for invoice generation.</div>
+                </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="CurrencyCode">Currency Code (ISO 4217)</label>
-                        <input type="text" id="CurrencyCode" name="CurrencyCode" class="emby-input" maxlength="3" pattern="[A-Z]{3}" />
-                        <div class="fieldDescription">Three-letter currency code (e.g., USD, EUR, GBP).</div>
-                    </div>
+                <div class="inputContainer">
+                    <label class="inputLabel" for="CurrencyCode">Currency Code (ISO 4217)</label>
+                    <input is="emby-input" type="text" id="CurrencyCode" class="emby-input" maxlength="3" />
+                    <div class="fieldDescription">Three-letter currency code (e.g., USD, EUR, GBP).</div>
+                </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="DefaultRatePerHour">Default Rate Per Hour</label>
-                        <input type="number" id="DefaultRatePerHour" name="DefaultRatePerHour" class="emby-input" min="0" step="0.01" />
-                        <div class="fieldDescription">Hourly rate for viewing charges.</div>
-                    </div>
+                <div class="inputContainer">
+                    <label class="inputLabel" for="DefaultRatePerHour">Default Rate Per Hour</label>
+                    <input is="emby-input" type="number" id="DefaultRatePerHour" class="emby-input" min="0" step="0.01" />
+                    <div class="fieldDescription">Hourly rate for viewing charges.</div>
+                </div>
 
-                    <div class="inputContainer">
-                        <label class="inputLabel" for="InvoicePeriodDays">Invoice Period (Days)</label>
-                        <input type="number" id="InvoicePeriodDays" name="InvoicePeriodDays" class="emby-input" min="1" max="365" />
-                        <div class="fieldDescription">Number of days per billing cycle.</div>
-                    </div>
+                <div class="inputContainer">
+                    <label class="inputLabel" for="InvoicePeriodDays">Invoice Period (Days)</label>
+                    <input is="emby-input" type="number" id="InvoicePeriodDays" class="emby-input" min="1" max="365" />
+                    <div class="fieldDescription">Number of days per billing cycle.</div>
+                </div>
 
-                    <div>
-                        <button type="button" id="SaveButton" class="raised button-submit block emby-button" onclick="InvoiceConfig.saveConfiguration(event)">
-                            <span>Save</span>
-                        </button>
-                    </div>
-                </form>
+                <div>
+                    <button is="emby-button" type="button" class="raised button-submit block emby-button" id="saveButton">
+                        <span>Save</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script type="text/javascript">
-        window.InvoiceConfig = {
-            pluginUniqueId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        (function() {
+            'use strict';
 
-            loadConfiguration: function () {
-                console.log('Loading Invoice Generator configuration...');
+            var pluginId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+            function loadConfig() {
                 Dashboard.showLoadingMsg();
-                ApiClient.getPluginConfiguration(InvoiceConfig.pluginUniqueId).then(function (config) {
-                    console.log('Config loaded:', config);
+                ApiClient.getPluginConfiguration(pluginId).then(function(config) {
                     document.getElementById('EnableTracking').value = config.EnableTracking ? 'true' : 'false';
                     document.getElementById('CurrencyCode').value = config.CurrencyCode || 'USD';
                     document.getElementById('DefaultRatePerHour').value = config.DefaultRatePerHour || 0;
                     document.getElementById('InvoicePeriodDays').value = config.InvoicePeriodDays || 30;
                     Dashboard.hideLoadingMsg();
-                }).catch(function (err) {
+                }).catch(function(err) {
                     console.error('Failed to load config:', err);
                     Dashboard.hideLoadingMsg();
                 });
-            },
+            }
 
-            saveConfiguration: function (e) {
-                e.preventDefault();
-                console.log('Saving Invoice Generator configuration...');
+            function saveConfig() {
                 Dashboard.showLoadingMsg();
-
-                ApiClient.getPluginConfiguration(InvoiceConfig.pluginUniqueId).then(function (config) {
-                    console.log('Got existing config:', config);
-
+                ApiClient.getPluginConfiguration(pluginId).then(function(config) {
                     config.EnableTracking = document.getElementById('EnableTracking').value === 'true';
                     config.CurrencyCode = document.getElementById('CurrencyCode').value.toUpperCase() || 'USD';
                     config.DefaultRatePerHour = parseFloat(document.getElementById('DefaultRatePerHour').value) || 0;
                     config.InvoicePeriodDays = parseInt(document.getElementById('InvoicePeriodDays').value) || 30;
-
-                    console.log('Updated config:', config);
-
-                    return ApiClient.updatePluginConfiguration(InvoiceConfig.pluginUniqueId, config);
-                }).then(function () {
-                    console.log('Config saved successfully');
+                    return ApiClient.updatePluginConfiguration(pluginId, config);
+                }).then(function() {
                     Dashboard.processPluginConfigurationUpdateResult();
-                }).catch(function (err) {
-                    console.error('Failed to save config:', err);
+                }).catch(function(err) {
+                    console.error('Failed to save:', err);
                     Dashboard.hideLoadingMsg();
-                    Dashboard.alert('Failed to save configuration: ' + err);
+                    Dashboard.alert('Failed to save');
                 });
-
-                return false;
             }
-        };
 
-        // Try multiple ways to attach load event
-        document.getElementById('InvoiceConfigPage').addEventListener('viewshow', InvoiceConfig.loadConfiguration);
-        document.getElementById('InvoiceConfigPage').addEventListener('pageshow', InvoiceConfig.loadConfiguration);
+            var page = document.querySelector('#InvoiceConfigPage');
+            page.addEventListener('pageshow', loadConfig);
+            page.addEventListener('viewshow', loadConfig);
 
-        // Also load immediately in case events don't fire
-        console.log('Invoice Generator plugin script loaded');
-        setTimeout(function() {
-            console.log('Loading config after timeout...');
-            InvoiceConfig.loadConfiguration();
-        }, 500);
+            document.getElementById('saveButton').addEventListener('click', saveConfig);
+        })();
     </script>
 </body>
 </html>
