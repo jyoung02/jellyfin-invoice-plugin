@@ -32,10 +32,24 @@
                     <div class="fieldDescription">Three-letter currency code (e.g., USD, EUR, GBP).</div>
                 </div>
 
+                <h3>Flat Rate Billing</h3>
+
                 <div class="inputContainer">
-                    <label class="inputLabel" for="txtDefaultRatePerHour">Default Rate Per Hour</label>
-                    <input is="emby-input" type="number" id="txtDefaultRatePerHour" class="emby-input" min="0" step="0.01" />
-                    <div class="fieldDescription">Hourly rate for viewing charges.</div>
+                    <label class="inputLabel" for="txtMovieRate">Movie Rate</label>
+                    <input is="emby-input" type="number" id="txtMovieRate" class="emby-input" min="0" step="0.01" />
+                    <div class="fieldDescription">Flat rate charged per movie watched.</div>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel" for="txtEpisodeRate">Episode Rate</label>
+                    <input is="emby-input" type="number" id="txtEpisodeRate" class="emby-input" min="0" step="0.01" />
+                    <div class="fieldDescription">Flat rate charged per TV episode watched.</div>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel" for="txtOtherRate">Other Content Rate</label>
+                    <input is="emby-input" type="number" id="txtOtherRate" class="emby-input" min="0" step="0.01" />
+                    <div class="fieldDescription">Flat rate for other content types (music videos, etc.).</div>
                 </div>
 
                 <div class="inputContainer">
@@ -60,7 +74,9 @@
                 ApiClient.getPluginConfiguration(pluginId).then(function(config) {
                     config.EnableTracking = page.querySelector('#txtEnableTracking').value === 'true';
                     config.CurrencyCode = page.querySelector('#txtCurrencyCode').value.toUpperCase() || 'USD';
-                    config.DefaultRatePerHour = parseFloat(page.querySelector('#txtDefaultRatePerHour').value) || 0;
+                    config.MovieRate = parseFloat(page.querySelector('#txtMovieRate').value) || 5;
+                    config.EpisodeRate = parseFloat(page.querySelector('#txtEpisodeRate').value) || 1;
+                    config.OtherRate = parseFloat(page.querySelector('#txtOtherRate').value) || 1;
                     config.InvoicePeriodDays = parseInt(page.querySelector('#txtInvoicePeriodDays').value) || 30;
                     ApiClient.updatePluginConfiguration(pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
                 });
@@ -69,7 +85,9 @@
             ApiClient.getPluginConfiguration(pluginId).then(function(config) {
                 page.querySelector('#txtEnableTracking').value = config.EnableTracking ? 'true' : 'false';
                 page.querySelector('#txtCurrencyCode').value = config.CurrencyCode || 'USD';
-                page.querySelector('#txtDefaultRatePerHour').value = config.DefaultRatePerHour || 0;
+                page.querySelector('#txtMovieRate').value = config.MovieRate || 5;
+                page.querySelector('#txtEpisodeRate').value = config.EpisodeRate || 1;
+                page.querySelector('#txtOtherRate').value = config.OtherRate || 1;
                 page.querySelector('#txtInvoicePeriodDays').value = config.InvoicePeriodDays || 30;
             });
         </script>

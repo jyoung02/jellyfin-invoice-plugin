@@ -176,12 +176,14 @@ public sealed class ViewingTracker : IHostedService, IDisposable
             }
 
             var itemName = ExtractItemName(e);
+            var itemType = ExtractItemType(e);
 
             return new PlaybackSession
             {
                 UserId = userId.Value,
                 ItemId = itemId.Value,
                 ItemName = itemName,
+                ItemType = itemType,
                 StartTime = DateTime.UtcNow
             };
         }
@@ -190,6 +192,27 @@ public sealed class ViewingTracker : IHostedService, IDisposable
             _logger.LogWarning(ex, "Failed to create playback session");
             return null;
         }
+    }
+
+    /// <summary>
+    /// Extracts the media item type from event args.
+    /// </summary>
+    private MediaItemType ExtractItemType(PlaybackProgressEventArgs e)
+    {
+        var item = e.Item;
+        if (item == null)
+        {
+            return MediaItemType.Other;
+        }
+
+        // Check the item type using Jellyfin's type system
+        var typeName = item.GetType().Name;
+        return typeName switch
+        {
+            "Movie" => MediaItemType.Movie,
+            "Episode" => MediaItemType.Episode,
+            _ => MediaItemType.Other
+        };
     }
 
     /// <summary>
@@ -272,6 +295,7 @@ public sealed class ViewingTracker : IHostedService, IDisposable
                 userId: session.UserId,
                 itemId: session.ItemId,
                 itemName: session.ItemName,
+                itemType: session.ItemType,
                 startTime: session.StartTime,
                 endTime: endTime,
                 durationTicks: validDuration
@@ -334,6 +358,7 @@ public sealed class ViewingTracker : IHostedService, IDisposable
         public Guid UserId { get; init; }
         public Guid ItemId { get; init; }
         public string ItemName { get; init; } = string.Empty;
+        public MediaItemType ItemType { get; init; }
         public DateTime StartTime { get; init; }
     }
 }

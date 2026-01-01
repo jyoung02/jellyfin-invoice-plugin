@@ -334,6 +334,7 @@ public sealed class DataStore : IDisposable
                 InputSanitizer.ValidateGuid(record.UserId, "UserId"),
                 InputSanitizer.ValidateGuid(record.ItemId, "ItemId"),
                 InputSanitizer.SanitizeString(record.ItemName, 200),
+                record.ItemType,
                 record.StartTime,
                 record.EndTime,
                 InputSanitizer.ValidateDurationTicks(record.DurationTicks, "DurationTicks")

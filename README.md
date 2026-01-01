@@ -1,6 +1,6 @@
 # Jellyfin Invoice Generator Plugin
 
-[![Version](https://img.shields.io/badge/version-1.2.5-blue.svg)](https://github.com/jyoung02/jellyfin-invoice-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/jyoung02/jellyfin-invoice-plugin/releases)
 [![Jellyfin](https://img.shields.io/badge/Jellyfin-10.9+-purple.svg)](https://jellyfin.org/)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
 
@@ -10,15 +10,15 @@ A Jellyfin plugin that tracks user viewing activity and generates invoices based
 
 This plugin monitors playback events in Jellyfin and creates detailed invoices for users based on their watching habits:
 
-1. **Tracks Viewing Sessions** - Listens to playback start/stop events and records each viewing session with user, media item, duration, and timestamps
-2. **Calculates Charges** - Applies configurable hourly rates to viewing time
-3. **Generates Invoices** - Creates itemized invoices showing what was watched, for how long, and the total cost
+1. **Tracks Viewing Sessions** - Listens to playback start/stop events and records each viewing session with user, media item, and content type
+2. **Flat Rate Billing** - Charges per item watched: configurable rates for movies, TV episodes, and other content
+3. **Generates Invoices** - Creates itemized invoices showing what was watched and the total cost
 4. **Provides REST API** - Exposes endpoints to retrieve and generate invoices programmatically
 
 ## Features
 
 - **Automatic Playback Tracking** - Hooks into Jellyfin's playback events (sessions under 30 seconds are excluded)
-- **Configurable Billing** - Set your own hourly rate, currency, and billing period
+- **Flat Rate Billing** - Set different rates for movies, episodes, and other content
 - **Custom Date Ranges** - Generate invoices for any time period (up to 365 days)
 - **Invoice Viewer UI** - View and generate invoices directly from Jellyfin's dashboard
 - **Thread-Safe Storage** - JSON-based persistence with atomic file operations
@@ -43,10 +43,10 @@ Access the plugin settings via **Dashboard > Plugins > Invoice Generator**:
 |---------|-------------|---------|
 | Enable Tracking | Turn viewing tracking on/off | `false` |
 | Currency Code | ISO 4217 currency code (e.g., USD, EUR, GBP) | `USD` |
-| Default Rate Per Hour | Hourly rate for viewing charges | `0.00` |
+| Movie Rate | Flat rate per movie watched | `$5.00` |
+| Episode Rate | Flat rate per TV episode watched | `$1.00` |
+| Other Rate | Flat rate for other content (music videos, etc.) | `$1.00` |
 | Invoice Period Days | Default billing period length | `30` |
-| Max Title Length | Maximum characters for media titles | `200` |
-| Max Description Length | Maximum characters for descriptions | `500` |
 
 ## Viewing Invoices
 
@@ -55,10 +55,10 @@ Access the invoice viewer from **Dashboard > Plugins > Invoice Generator**, then
 1. Select a user from the dropdown
 2. View all invoices with billing period, total amount, and creation date
 3. Click any invoice to see detailed line items:
-   - Description (media title and date)
-   - Hours watched
-   - Hourly rate
-   - Line item amount
+   - Description (content type, title, and date)
+   - Quantity (1 per item)
+   - Rate (based on content type)
+   - Amount
 4. Click **Generate Invoice** to create an invoice for the current billing period
 
 ## API Endpoints

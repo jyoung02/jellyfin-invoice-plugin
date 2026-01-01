@@ -173,11 +173,9 @@ public sealed class InvoiceGenerator
     /// </summary>
     private void AddLineItems(Invoice invoice, List<ViewingRecord> records, PluginConfiguration config)
     {
-        var rate = GetHourlyRate(config);
-
         foreach (var record in records)
         {
-            var lineItem = CreateLineItem(record, rate, config);
+            var lineItem = CreateLineItem(record, config);
             invoice.AddLineItem(lineItem);
         }
 
@@ -187,33 +185,34 @@ public sealed class InvoiceGenerator
     }
 
     /// <summary>
-    /// Gets the validated hourly rate.
+    /// Gets the flat rate for a given media type.
     /// </summary>
-    private static decimal GetHourlyRate(PluginConfiguration config)
+    private static decimal GetRateForItemType(MediaItemType itemType, PluginConfiguration config)
     {
-        return InputSanitizer.ValidateDecimalRange(
-            config.DefaultRatePerHour,
-            min: 0m,
-            max: 10000m,
-            paramName: "DefaultRatePerHour");
+        var rate = itemType switch
+        {
+            MediaItemType.Movie => config.MovieRate,
+            MediaItemType.Episode => config.EpisodeRate,
+            _ => config.OtherRate
+        };
+
+        return InputSanitizer.ValidateDecimalRange(rate, min: 0m, max: 10000m, paramName: "Rate");
     }
 
     /// <summary>
-    /// Creates a line item from a viewing record.
+    /// Creates a line item from a viewing record using flat rate billing.
     /// </summary>
-    private static InvoiceLineItem CreateLineItem(
-        ViewingRecord record,
-        decimal hourlyRate,
-        PluginConfiguration config)
+    private static InvoiceLineItem CreateLineItem(ViewingRecord record, PluginConfiguration config)
     {
         var description = FormatDescription(record, config);
-        var hours = CalculateHours(record);
+        var rate = GetRateForItemType(record.ItemType, config);
 
+        // Flat rate billing: quantity is always 1
         return new InvoiceLineItem(
             viewingRecordId: record.Id,
             description: description,
-            quantity: hours,
-            unitPrice: hourlyRate
+            quantity: 1m,
+            unitPrice: rate
         );
     }
 
@@ -224,23 +223,15 @@ public sealed class InvoiceGenerator
     {
         var itemName = InputSanitizer.SanitizeString(record.ItemName, config.MaxTitleLength);
         var dateStr = record.StartTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var typeLabel = record.ItemType switch
+        {
+            MediaItemType.Movie => "Movie",
+            MediaItemType.Episode => "Episode",
+            _ => "Other"
+        };
 
-        var description = $"{itemName} - {dateStr}";
+        var description = $"{typeLabel}: {itemName} - {dateStr}";
         return InputSanitizer.SanitizeString(description, config.MaxDescriptionLength);
-    }
-
-    /// <summary>
-    /// Calculates billable hours from a viewing record.
-    /// </summary>
-    private static decimal CalculateHours(ViewingRecord record)
-    {
-        var hours = record.DurationHours;
-
-        // Round to 2 decimal places
-        hours = Math.Round(hours, 2, MidpointRounding.AwayFromZero);
-
-        // Ensure non-negative
-        return InputSanitizer.ValidateDecimalRange(hours, 0m, 24m, "Hours");
     }
 
     /// <summary>

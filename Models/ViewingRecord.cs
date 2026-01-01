@@ -3,6 +3,19 @@ using System;
 namespace JellyfinInvoice.Models;
 
 /// <summary>
+/// Type of media item for billing purposes.
+/// </summary>
+public enum MediaItemType
+{
+    /// <summary>Unknown or other content type.</summary>
+    Other = 0,
+    /// <summary>A movie.</summary>
+    Movie = 1,
+    /// <summary>A TV episode.</summary>
+    Episode = 2
+}
+
+/// <summary>
 /// Represents a single viewing session for a user.
 /// Immutable after creation to ensure data integrity.
 /// </summary>
@@ -15,6 +28,7 @@ public sealed class ViewingRecord
     /// <param name="userId">The Jellyfin user ID (already sanitized).</param>
     /// <param name="itemId">The media item ID (already sanitized).</param>
     /// <param name="itemName">The display name of the media (already sanitized).</param>
+    /// <param name="itemType">The type of media (movie, episode, etc.).</param>
     /// <param name="startTime">When playback started (UTC).</param>
     /// <param name="endTime">When playback ended (UTC).</param>
     /// <param name="durationTicks">Total playback duration in ticks.</param>
@@ -23,6 +37,7 @@ public sealed class ViewingRecord
         Guid userId,
         Guid itemId,
         string itemName,
+        MediaItemType itemType,
         DateTime startTime,
         DateTime endTime,
         long durationTicks)
@@ -31,6 +46,7 @@ public sealed class ViewingRecord
         UserId = userId;
         ItemId = itemId;
         ItemName = itemName;
+        ItemType = itemType;
         StartTime = startTime;
         EndTime = endTime;
         DurationTicks = durationTicks;
@@ -55,6 +71,11 @@ public sealed class ViewingRecord
     /// Gets the sanitized display name of the media item.
     /// </summary>
     public string ItemName { get; }
+
+    /// <summary>
+    /// Gets the type of media item (movie, episode, etc.).
+    /// </summary>
+    public MediaItemType ItemType { get; }
 
     /// <summary>
     /// Gets the UTC timestamp when playback started.

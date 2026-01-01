@@ -17,7 +17,9 @@ public class PluginConfiguration : BasePluginConfiguration
         // Secure defaults
         EnableTracking = false;
         CurrencyCode = "USD";
-        DefaultRatePerHour = 0.00m;
+        MovieRate = 5.00m;
+        EpisodeRate = 1.00m;
+        OtherRate = 1.00m;
         InvoicePeriodDays = 30;
         MaxTitleLength = 200;
         MaxDescriptionLength = 500;
@@ -35,9 +37,19 @@ public class PluginConfiguration : BasePluginConfiguration
     public string CurrencyCode { get; set; }
 
     /// <summary>
-    /// Gets or sets the default hourly rate for viewing charges.
+    /// Gets or sets the flat rate charged per movie watched.
     /// </summary>
-    public decimal DefaultRatePerHour { get; set; }
+    public decimal MovieRate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the flat rate charged per TV episode watched.
+    /// </summary>
+    public decimal EpisodeRate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the flat rate charged for other content types.
+    /// </summary>
+    public decimal OtherRate { get; set; }
 
     /// <summary>
     /// Gets or sets the invoice billing period in days.
