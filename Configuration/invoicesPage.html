@@ -153,10 +153,22 @@
             initialized: false,
 
             init: function() {
-                if (this.initialized) return;
-                this.initialized = true;
-                this.loadUsers();
-                this.bindEvents();
+                if (!this.initialized) {
+                    this.initialized = true;
+                    this.loadUsers();
+                    this.bindEvents();
+                }
+                // Always reset UI state when page is shown
+                this.reset();
+            },
+
+            reset: function() {
+                this.currentUserId = null;
+                this.currentInvoices = [];
+                document.getElementById('UserSelect').value = '';
+                document.getElementById('GenerateInvoiceBtn').disabled = true;
+                document.getElementById('InvoiceList').classList.add('hidden');
+                document.getElementById('InvoiceDetails').classList.add('hidden');
             },
 
             bindEvents: function() {
