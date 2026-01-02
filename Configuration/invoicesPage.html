@@ -102,7 +102,7 @@
                     </button>
                 </div>
 
-                <div id="InvoiceList" class="hidden">
+                <div id="InvoiceList" style="display:none">
                     <h3>Invoices for <span id="SelectedUserName"></span></h3>
                     <table class="invoice-table">
                         <thead>
@@ -116,12 +116,12 @@
                         <tbody id="InvoiceTableBody">
                         </tbody>
                     </table>
-                    <div id="NoInvoices" class="no-invoices hidden">
+                    <div id="NoInvoices" class="no-invoices" style="display:none">
                         No invoices found for this user.
                     </div>
                 </div>
 
-                <div id="InvoiceDetails" class="invoice-details hidden">
+                <div id="InvoiceDetails" class="invoice-details" style="display:none">
                     <h3>Invoice Details</h3>
                     <p>
                         <strong>Period:</strong> <span id="DetailPeriod"></span><br>
@@ -167,8 +167,8 @@
                 this.currentInvoices = [];
                 document.getElementById('UserSelect').value = '';
                 document.getElementById('GenerateInvoiceBtn').disabled = true;
-                document.getElementById('InvoiceList').classList.add('hidden');
-                document.getElementById('InvoiceDetails').classList.add('hidden');
+                document.getElementById('InvoiceList').style.display = 'none';
+                document.getElementById('InvoiceDetails').style.display = 'none';
             },
 
             bindEvents: function() {
@@ -195,7 +195,7 @@
 
                 document.getElementById('GenerateInvoiceBtn').disabled = !userId;
                 // Always hide invoice details when switching users
-                document.getElementById('InvoiceDetails').classList.add('hidden');
+                document.getElementById('InvoiceDetails').style.display = 'none';
 
                 if (userId) {
                     this.currentUserId = userId;
@@ -203,7 +203,7 @@
                     this.loadInvoices(userId);
                 } else {
                     this.currentUserId = null;
-                    document.getElementById('InvoiceList').classList.add('hidden');
+                    document.getElementById('InvoiceList').style.display = 'none';
                 }
             },
 
@@ -234,16 +234,16 @@
                 var noInvoices = document.getElementById('NoInvoices');
 
                 tbody.innerHTML = '';
-                document.getElementById('InvoiceDetails').classList.add('hidden');
+                document.getElementById('InvoiceDetails').style.display = 'none';
 
-                listDiv.classList.remove('hidden');
+                listDiv.style.display = '';
 
                 if (!invoices || invoices.length === 0) {
-                    noInvoices.classList.remove('hidden');
+                    noInvoices.style.display = '';
                     return;
                 }
 
-                noInvoices.classList.add('hidden');
+                noInvoices.style.display = 'none';
 
                 var self = this;
                 invoices.forEach(function(invoice, index) {
@@ -298,7 +298,7 @@
                 }).then(function() {
                     Dashboard.hideLoadingMsg();
                     Dashboard.alert('Invoice deleted.');
-                    document.getElementById('InvoiceDetails').classList.add('hidden');
+                    document.getElementById('InvoiceDetails').style.display = 'none';
                     self.loadInvoices(self.currentUserId);
                 }).catch(function(err) {
                     Dashboard.hideLoadingMsg();
@@ -334,7 +334,7 @@
                     tbody.appendChild(tr);
                 }
 
-                detailsDiv.classList.remove('hidden');
+                detailsDiv.style.display = '';
             },
 
             generateInvoice: function() {
