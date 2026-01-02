@@ -182,6 +182,8 @@
                 var selectedOption = e.target.options[e.target.selectedIndex];
 
                 document.getElementById('GenerateInvoiceBtn').disabled = !userId;
+                // Always hide invoice details when switching users
+                document.getElementById('InvoiceDetails').classList.add('hidden');
 
                 if (userId) {
                     this.currentUserId = userId;
@@ -190,7 +192,6 @@
                 } else {
                     this.currentUserId = null;
                     document.getElementById('InvoiceList').classList.add('hidden');
-                    document.getElementById('InvoiceDetails').classList.add('hidden');
                 }
             },
 
