@@ -38,7 +38,8 @@ public sealed class DataStore : IDisposable
         _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
         };
 
         EnsureDirectoryExists();
@@ -92,9 +93,13 @@ public sealed class DataStore : IDisposable
 
             foreach (var record in allRecords)
             {
+                // Normalize dates to UTC for comparison (JSON deserialization may lose Kind)
+                var recordStart = DateTime.SpecifyKind(record.StartTime, DateTimeKind.Utc);
+                var recordEnd = DateTime.SpecifyKind(record.EndTime, DateTimeKind.Utc);
+
                 if (record.UserId == validUserId &&
-                    record.StartTime >= validStart &&
-                    record.EndTime <= validEnd)
+                    recordStart >= validStart &&
+                    recordEnd <= validEnd)
                 {
                     // Re-validate data read from storage
                     var validatedRecord = ValidateRecordFromStorage(record);
